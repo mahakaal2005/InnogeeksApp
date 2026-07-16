@@ -26,7 +26,7 @@ typealias EmptyResult<E> = Result<Unit, E>
 // inline => the lambda is compiled into the call site (no per-call lambda object).
 inline fun <T, E : Error, R> Result<T, E>.map(map: (T) -> R): Result<R, E> {
     return when (this) {
-        is Result.Error -> Result.Error(error = this.error)
+        is Result.Error -> Result.Error(error)
         is Result.Success -> Result.Success(data = map(this.data))
     }
 }
