@@ -12,14 +12,14 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-// Assembles a fully-configured Ktor HttpClient. A class (not a top-level fun) so Koin
-// can provide it via singleOf(::HttpClientFactory) in Lesson 6.
-class HttpClientFactory {
+// Assembles a fully-configured Ktor HttpClient. An `object` (singleton) exposing a
+// create() factory method — matches the skill's DI usage: single { HttpClientFactory.create(get()) }.
+object HttpClientFactory {
 
     // The engine is INJECTED, not hardcoded — Ktor is engine-agnostic (OkHttp, CIO...).
     // Real code passes OkHttp.create(); a test could pass a fake. Depend on the
     // abstraction (HttpClientEngine), not the concrete engine.
-    fun build(engine: HttpClientEngine) : HttpClient{
+    fun create(engine: HttpClientEngine) : HttpClient{
         return HttpClient(engine){
 
             // Logs every request/response to Logcat — invaluable for debugging API calls.
