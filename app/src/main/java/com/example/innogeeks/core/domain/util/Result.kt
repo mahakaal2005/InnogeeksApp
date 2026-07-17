@@ -24,16 +24,25 @@ typealias EmptyResult<E> = Result<Unit, E>
 
 // Transforms the success value (T -> R); passes any error through untouched.
 // inline => the lambda is compiled into the call site (no per-call lambda object).
-inline fun <T, E : Error, R> Result<T, E>.map(map: (T) -> R): Result<R, E> {
+inline fun <T, E : Error, R> Result<T, E>.mapData(map: (T) -> R): Result<R, E> {
     return when (this) {
         is Result.Error -> Result.Error(error)
         is Result.Success -> Result.Success(data = map(this.data))
     }
 }
 
+// Mirror of mapData: transforms the ERROR value (E -> E2), passes success through.
+// Used to convert one layer's error type into another (e.g. DataError -> SignUpError.Remote).
+inline fun <T , E:Error , E2: Error> Result<T,E>.mapError(map: (E)->E2) : Result<T,E2>{
+    return when(this){
+        is Result.Error -> Result.Error(map(this.error))
+        is Result.Success -> Result.Success(this.data)
+    }
+}
+
 // Discards a success value, keeping only "worked or failed with E".
 fun <T, E : Error> Result<T, E>.asEmptyResult(): EmptyResult<E> {
-    return this.map { Unit }
+    return this.mapData { Unit }
 }
 
 // Side-effect on success only; returns `this` unchanged so calls can be chained.
