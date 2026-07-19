@@ -253,8 +253,9 @@ val unspecified_scheme = ColorFamily(
 
 @Composable
 fun InnogeeksTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    // TODO: force dark app-wide for now (design is dark-first); revisit light mode later.
+    darkTheme: Boolean = true,
+    // Dynamic color OFF so our logo-blue brand always wins over wallpaper colors (Android 12+).
     dynamicColor: Boolean = false,
     content: @Composable() () -> Unit
 ) {

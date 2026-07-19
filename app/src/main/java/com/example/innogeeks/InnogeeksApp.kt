@@ -3,6 +3,7 @@ package com.example.innogeeks
 import android.app.Application
 import com.example.innogeeks.core.data.di.coreDataModule
 import com.example.innogeeks.feature_onboarding.data.di.onboardingDataModule
+import com.example.innogeeks.feature_onboarding.presentation.onboardingPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -20,7 +21,8 @@ class InnogeeksApp : Application(){
                 // core (shared across features) — listed first for readability, not required by Koin
                 coreDataModule,
                 // feature: onboarding
-                onboardingDataModule
+                onboardingDataModule,
+                onboardingPresentationModule
             )
         }
     }

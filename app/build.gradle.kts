@@ -49,8 +49,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // Haze — real backdrop blur for glassmorphism (glass nav + login card)
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
 
     // Koin — dependency injection
     implementation(libs.koin.android)
