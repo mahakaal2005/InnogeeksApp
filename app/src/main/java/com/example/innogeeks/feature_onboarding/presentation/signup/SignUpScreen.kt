@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_onboarding.presentation.login
+package com.example.innogeeks.feature_onboarding.presentation.signup
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -24,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,8 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -46,53 +41,42 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.innogeeks.core.presentation.ObserveAsEvents
+import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.presentation.components.AuthGlowBackground
 import com.example.innogeeks.feature_onboarding.presentation.components.glassFieldColors
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 
 
-// Root = the SMART half: knows the ViewModel, subscribes to state, handles one-shot events,
-// owns navigation. It hands the dumb LoginScreen only state + onAction.
+// Root = smart half: pulls the ViewModel from Koin, observes events, owns navigation.
 @Composable
-fun LoginRoot(
-    onNavigateToHome: () -> Unit,        // nav callbacks passed IN — the screen doesn't own navigation
-    onNavigateToSignUp: () -> Unit,
-    viewModel: LoginViewModel = koinViewModel()  // Koin builds it + injects LoginUseCase
+fun SignUpRoot(
+    onNavigateToLogin: () -> Unit,
+    viewModel: SignUpViewModel = koinViewModel()
 ) {
-    // Subscribe to state; `by` makes `state` read as the current LoginState. Redraws on change.
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // One-shot events -> fire the matching navigation callback exactly once.
+    // Both signup-success AND the "already have an account? Log in" link -> go to Login.
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is LoginEvent.NavigateToHome -> onNavigateToHome()
-            is LoginEvent.NavigateToSignUp -> onNavigateToSignUp()
+            is SignUpEvent.NavigateToLoginScreen -> onNavigateToLogin()
         }
     }
 
-    // Hand the dumb screen what to draw (state) + how to talk back (onAction).
-    // viewModel::onAction is a function REFERENCE — the function as a value, not a call.
-    LoginScreen(
-        state = state,
-        onAction = viewModel::onAction
-    )
+    SignUpScreen(state = state, onAction = viewModel::onAction)
 }
 
 @OptIn(ExperimentalHazeMaterialsApi::class)
 @Composable
-fun LoginScreen(
-    state: LoginState,
-    onAction: (LoginAction) -> Unit,
+fun SignUpScreen(
+    state: SignUpState,
+    onAction: (SignUpAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Haze needs a shared state object linking the blurred SOURCE (background) to the
-    // glass EFFECT (card). remember so it survives recomposition.
     val hazeState = remember { HazeState() }
 
     Box(
@@ -100,10 +84,10 @@ fun LoginScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Layer 1: shared dark background + brand-blue glow blobs (the Haze source).
+        // Shared dark background + brand-blue glow blobs (the Haze source).
         AuthGlowBackground(hazeState = hazeState)
 
-        // Layer 2: the frosted-glass card holding the form.
+        // The frosted-glass card holding the form.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -118,7 +102,6 @@ fun LoginScreen(
                 )
                 .padding(horizontal = 24.dp, vertical = 32.dp)
         ) {
-            // INNO (white) + GEEKS (brand) wordmark, matching the site/mockups.
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) {
@@ -134,17 +117,17 @@ fun LoginScreen(
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Welcome back",
+                text = "Create your account",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.7f)
             )
 
             Spacer(Modifier.height(28.dp))
 
-            // Email field
+            // Email
             OutlinedTextField(
                 value = state.email,
-                onValueChange = { onAction(LoginAction.OnEmailChange(it)) },
+                onValueChange = { onAction(SignUpAction.OnEmailChange(it)) },
                 label = { Text("Email") },
                 singleLine = true,
                 isError = state.emailError != null,
@@ -156,10 +139,10 @@ fun LoginScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Password field with the show/hide eye toggle
+            // Password (the eye toggle reveals both password fields together)
             OutlinedTextField(
                 value = state.password,
-                onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
+                onValueChange = { onAction(SignUpAction.OnPasswordChange(it)) },
                 label = { Text("Password") },
                 singleLine = true,
                 isError = state.passwordError != null,
@@ -170,7 +153,7 @@ fun LoginScreen(
                     PasswordVisualTransformation()
                 },
                 trailingIcon = {
-                    IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
+                    IconButton(onClick = { onAction(SignUpAction.OnTogglePasswordVisibility) }) {
                         Icon(
                             imageVector = if (state.isPasswordVisible) {
                                 Icons.Filled.VisibilityOff
@@ -191,11 +174,31 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(Modifier.height(16.dp))
+
+            // Confirm password — same visibility toggle as the password above.
+            OutlinedTextField(
+                value = state.confirmPassword,
+                onValueChange = { onAction(SignUpAction.OnConfirmPasswordChange(it)) },
+                label = { Text("Confirm password") },
+                singleLine = true,
+                isError = state.confirmPasswordError != null,
+                supportingText = { state.confirmPasswordError?.let { Text(it.asString()) } },
+                visualTransformation = if (state.isPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                colors = glassFieldColors(),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(Modifier.height(28.dp))
 
-            // Solid cyan pill CTA — glass buttons fail contrast, so the primary action is bold.
+            // Solid cyan pill CTA — swaps to a spinner while the signup call is in flight.
             Button(
-                onClick = { onAction(LoginAction.OnLoginClick) },
+                onClick = { onAction(SignUpAction.OnSignUpClick) },
                 enabled = !state.isLoading,
                 shape = RoundedCornerShape(percent = 50),
                 colors = ButtonDefaults.buttonColors(
@@ -214,7 +217,7 @@ fun LoginScreen(
                     )
                 } else {
                     Text(
-                        text = "Log in",
+                        text = "Create account",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -224,11 +227,11 @@ fun LoginScreen(
             Spacer(Modifier.height(8.dp))
 
             TextButton(
-                onClick = { onAction(LoginAction.OnSignUpClick) },
+                onClick = { onAction(SignUpAction.OnLoginClick) },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
-                    text = "Don't have an account? Sign up",
+                    text = "Already have an account? Log in",
                     color = Color.White.copy(alpha = 0.8f)
                 )
             }
@@ -236,27 +239,26 @@ fun LoginScreen(
     }
 }
 
-// --- Previews (dark, matching our dark-first design). Haze blur won't render in preview —
-// verify the glass on an emulator; the layout/colors preview fine. ---
+// --- Previews (dark). Haze blur only renders on a device; layout/colors preview fine. ---
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun LoginScreenPreview() {
+private fun SignUpScreenPreview() {
     InnogeeksTheme {
-        LoginScreen(state = LoginState(), onAction = {})
+        SignUpScreen(state = SignUpState(), onAction = {})
     }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun LoginScreenErrorPreview() {
+private fun SignUpScreenErrorPreview() {
     InnogeeksTheme {
-        LoginScreen(
-            state = LoginState(
-                email = "not-an-email",
-                password = "123",
-                emailError = com.example.innogeeks.core.presentation.UiText.DynamicString("That doesn't look like a valid email."),
-                passwordError = com.example.innogeeks.core.presentation.UiText.DynamicString("Password must be at least 8 characters.")
+        SignUpScreen(
+            state = SignUpState(
+                email = "bad-email",
+                password = "12345678",
+                confirmPassword = "87654321",
+                confirmPasswordError = UiText.DynamicString("Passwords do not match.")
             ),
             onAction = {}
         )
@@ -265,10 +267,15 @@ private fun LoginScreenErrorPreview() {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun LoginScreenLoadingPreview() {
+private fun SignUpScreenLoadingPreview() {
     InnogeeksTheme {
-        LoginScreen(
-            state = LoginState(email = "user@innogeeks.in", password = "password123", isLoading = true),
+        SignUpScreen(
+            state = SignUpState(
+                email = "user@innogeeks.in",
+                password = "password123",
+                confirmPassword = "password123",
+                isLoading = true
+            ),
             onAction = {}
         )
     }
