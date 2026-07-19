@@ -4,7 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.remember
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.example.innogeeks.feature_onboarding.presentation.login.LoginRoot
+import com.example.innogeeks.feature_onboarding.presentation.navigation.OnboardingGraphRoute
+import com.example.innogeeks.feature_onboarding.presentation.navigation.onboardingGraph
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,12 +18,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             InnogeeksTheme {
-                // TEMPORARY: launch straight into Login so we can see it run. Replaced by a
-                // proper nav graph later (splash -> intro -> auth). Empty nav callbacks for now.
-                LoginRoot(
-                    onNavigateToHome = {},
-                    onNavigateToSignUp = {}
-                )
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = OnboardingGraphRoute
+                ) {
+                    onboardingGraph(
+                        navController = navController,
+                        onNavigateToHome = {
+                            // TODO: no Home screen yet — wire when the home feature exists.
+                        }
+                    )
+                }
             }
         }
     }
