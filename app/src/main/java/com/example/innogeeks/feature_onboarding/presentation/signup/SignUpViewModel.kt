@@ -31,6 +31,10 @@ class SignUpViewModel(
 
     fun onAction(action: SignUpAction) {
         when (action) {
+            is SignUpAction.OnNameChange ->{
+                _state.update { it.copy(name =action.name , nameError = null ) }
+            }
+
             is SignUpAction.OnEmailChange -> {
                 _state.update { it.copy(email = action.email, emailError = null) }
             }
@@ -67,7 +71,7 @@ class SignUpViewModel(
                 it.copy(isLoading = true, emailError = null, passwordError = null, confirmPasswordError = null)
             }
 
-            val result = signUpUseCase(state.value.email, state.value.password)
+            val result = signUpUseCase(state.value.name,state.value.email, state.value.password)
 
             _state.update { it.copy(isLoading = false) }
 
@@ -80,6 +84,9 @@ class SignUpViewModel(
                         is SignUpError.Validation -> {
                             val message = signUpError.error.toUiText()
                             when (signUpError.error) {
+
+                                AuthValidationError.EMPTY_NAME -> _state.update { it.copy(nameError = message) }
+
                                 AuthValidationError.EMPTY_EMAIL,
                                 AuthValidationError.INVALID_EMAIL ->
                                     _state.update { it.copy(emailError = message) }

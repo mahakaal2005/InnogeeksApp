@@ -16,12 +16,17 @@ class SignUpUseCase(
     // operator fun invoke => call the object like a function: signUpUseCase(email, password).
     // A use case does exactly ONE thing, so its single method is just `invoke`.
     suspend operator fun invoke(
+        name : String,
         email: String,
         password: String
     ) : EmptyResult<SignUpError>{
 
         // Validation gate: check input BEFORE any network call. onFailure's lambda
         // early-returns out of invoke with the error wrapped as SignUpError.Validation.
+
+        authValidator.validateName(name)
+            .onFailure { return Result.Error(SignUpError.Validation(it)) }
+
         authValidator.validateEmail(email)
             .onFailure { return Result.Error(SignUpError.Validation(it)) }
 
@@ -31,7 +36,7 @@ class SignUpUseCase(
         // Both valid → hit the backend. signUp returns Result<Unit, DataError>; mapError
         // converts that DataError into SignUpError.Remote so the whole fn returns one
         // unified error type (SignUpError). Success passes through untouched.
-        return authRepository.signUp(email,password)
+        return authRepository.signUp(name,email,password)
             .mapError { SignUpError.Remote(it) }
     }
 }

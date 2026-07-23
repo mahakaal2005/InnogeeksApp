@@ -9,6 +9,7 @@
     <string name="error_unauthorized">Your session has expired. Please log in again.</string>
     <string name="error_disk_full">Your device storage is full. Free up some space and try again.</string>
     <string name="error_unknown">Something went wrong. Please try again.</string>
+    <string name="error_empty_name">Please enter your name.</string>
     <string name="error_empty_email">Please enter your email.</string>
     <string name="error_invalid_email">That doesn\'t look like a valid email.</string>
     <string name="error_empty_password">Please enter your password.</string>

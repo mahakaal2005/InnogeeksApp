@@ -4,10 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.example.innogeeks.feature_onboarding.presentation.login.LoginRoot
 import com.example.innogeeks.feature_onboarding.presentation.navigation.OnboardingGraphRoute
 import com.example.innogeeks.feature_onboarding.presentation.navigation.onboardingGraph
 import com.example.innogeeks.ui.theme.InnogeeksTheme
@@ -23,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = OnboardingGraphRoute
                 ) {
-                    onboardingGraph(
+                    this.onboardingGraph(
                         navController = navController,
                         onNavigateToHome = {
                             // TODO: no Home screen yet — wire when the home feature exists.

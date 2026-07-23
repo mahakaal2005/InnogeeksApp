@@ -90,6 +90,8 @@ class LoginViewModel(
                             AuthValidationError.EMPTY_PASSWORD,
                             AuthValidationError.PASSWORD_TOO_SHORT ->
                                 _state.update { it.copy(passwordError = message) }
+
+                            AuthValidationError.EMPTY_NAME -> Unit
                         }
                     }
 

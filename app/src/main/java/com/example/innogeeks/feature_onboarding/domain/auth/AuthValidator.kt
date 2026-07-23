@@ -6,6 +6,11 @@ import com.example.innogeeks.core.domain.util.Result
 
 class AuthValidator {
 
+    fun validateName(name : String) : EmptyResult<AuthValidationError>{
+        if(name.isBlank()) return Result.Error(AuthValidationError.EMPTY_NAME)
+        return Result.Success(Unit)
+    }
+
     fun validateEmail(email: String) : EmptyResult<AuthValidationError>{
         if(email.isBlank()) return Result.Error(AuthValidationError.EMPTY_EMAIL)
         if(!email.matches(EMAIL_REGEX)) return Result.Error(AuthValidationError.INVALID_EMAIL)

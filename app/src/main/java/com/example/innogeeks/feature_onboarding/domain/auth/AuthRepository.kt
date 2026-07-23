@@ -7,7 +7,7 @@ import com.example.innogeeks.feature_onboarding.domain.model.AuthUser
 
 interface AuthRepository  {
 
-    suspend fun signUp(email : String, password : String) : EmptyResult<DataError>
+    suspend fun signUp(name : String ,email : String, password : String) : EmptyResult<DataError>
 
     suspend fun login(email : String, password: String) : Result<AuthUser , DataError>
 

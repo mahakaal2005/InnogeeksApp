@@ -1,11 +1,13 @@
 package com.example.innogeeks.feature_onboarding.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -13,10 +15,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 
 // Shared onboarding UI building blocks, so Login/SignUp (and future auth screens) don't
 // duplicate the glassmorphism styling. Extracted from LoginScreen once a 2nd screen needed it.
@@ -57,6 +65,32 @@ fun AuthGlowBackground(hazeState: HazeState, modifier: Modifier = Modifier) {
         )
     }
 }
+
+// THE single liquid-glass recipe. Every auth card (login, signup, splash, intro) applies
+// this so the look is defined in ONE place — change it here, every screen updates.
+// Liquid glass vs plain glassmorphism:
+//  - HazeMaterials.thin() = lighter frosting so the brand glow behind actually shows through
+//    (thick() read as an opaque dark slab, not glass)
+//  - a bluish glow border (brand cyan up top fading to primary) = light catching the edge
+// clip first so the frost + border follow the rounded shape.
+@Composable
+@OptIn(ExperimentalHazeMaterialsApi::class)
+fun Modifier.liquidGlass(
+    hazeState: HazeState,
+    cornerRadius: Dp = 28.dp
+): Modifier = this
+    .clip(RoundedCornerShape(cornerRadius))
+    .hazeEffect(state = hazeState, style = HazeMaterials.thin())
+    .border(
+        width = 1.5.dp,
+        brush = Brush.verticalGradient(
+            listOf(
+                MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),  // bright cyan top edge
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)    // fading brand blue below
+            )
+        ),
+        shape = RoundedCornerShape(cornerRadius)
+    )
 
 // Transparent field colors so the frosted glass shows through, with light borders/text.
 @Composable

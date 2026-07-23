@@ -15,12 +15,14 @@ import kotlin.time.Duration.Companion.milliseconds
 // so loading spinners actually have something to spin for.
 class InMemoryAuthRepository: AuthRepository {
 
-    // Fake "backend DB": email -> password. Lives in memory; gone on app restart.
-    private val accounts = mutableMapOf<String, String>()
+    // Fake "backend DB": email -> Account(password, name). Lives in memory; gone on app restart.
+    private data class Account(val password: String, val name: String)
+    private val accounts = mutableMapOf<String, Account>()
 
     private var IntroSeen = false
 
     override suspend fun signUp(
+        name : String,
         email: String,
         password: String
     ): EmptyResult<DataError> {
@@ -29,7 +31,7 @@ class InMemoryAuthRepository: AuthRepository {
         if(accounts.containsKey(email)){
             return Result.Error(DataError.Network.CONFLICT)
         }
-        accounts[email] = password
+        accounts[email] = Account(password = password, name = name)
         return Result.Success(Unit)
     }
 
@@ -39,7 +41,7 @@ class InMemoryAuthRepository: AuthRepository {
     ): Result<AuthUser, DataError> {
         delay(1000.milliseconds)
         // Unknown email OR wrong password -> 401 Unauthorized, like a real backend.
-        if(!accounts.containsKey(email) || accounts[email] != password){
+        if(!accounts.containsKey(email) || accounts[email]?.password != password){
             return Result.Error(DataError.Network.UNAUTHORIZED)
         }
 
@@ -48,7 +50,7 @@ class InMemoryAuthRepository: AuthRepository {
             AuthUser(
                 id = "Fake-1",
                 email = email,
-                fullName = null,
+                fullName = accounts[email]?.name,
                 isPaid = false,
                 role = UserRole.REGISTERED
             )

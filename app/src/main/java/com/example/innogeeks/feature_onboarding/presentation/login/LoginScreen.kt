@@ -1,20 +1,24 @@
 package com.example.innogeeks.feature_onboarding.presentation.login
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -24,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,10 +35,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -45,15 +46,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.R
 import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.feature_onboarding.presentation.components.AuthGlowBackground
 import com.example.innogeeks.feature_onboarding.presentation.components.glassFieldColors
+import com.example.innogeeks.feature_onboarding.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -103,133 +103,158 @@ fun LoginScreen(
         // Layer 1: shared dark background + brand-blue glow blobs (the Haze source).
         AuthGlowBackground(hazeState = hazeState)
 
-        // Layer 2: the frosted-glass card holding the form.
+        // Layer 2: the whole page column — logo/heading, then the card, then the link.
+        // Scrollable so nothing clips on short screens once content sits outside the card.
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-                .align(Alignment.Center)
-                .clip(RoundedCornerShape(28.dp))
-                .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
-                .border(
-                    width = 1.dp,
-                    color = Color.White.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(28.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            // INNO (white) + GEEKS (brand) wordmark, matching the site/mockups.
+            // --- Header (OUTSIDE the card): logo badge + heading + subtitle ---
+            Image(
+                painter = painterResource(R.drawable.app_logo),
+                contentDescription = "Innogeeks logo",
+                modifier = Modifier.size(72.dp)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold)) {
-                        append("INNO")
-                    }
-                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)) {
-                        append("GEEKS")
-                    }
-                },
-                style = MaterialTheme.typography.headlineMedium
+                text = "Welcome Back",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Welcome back",
-                style = MaterialTheme.typography.bodyLarge,
+                text = "Sign in to continue your journey",
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f)
             )
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // Email field
-            OutlinedTextField(
-                value = state.email,
-                onValueChange = { onAction(LoginAction.OnEmailChange(it)) },
-                label = { Text("Email") },
-                singleLine = true,
-                isError = state.emailError != null,
-                supportingText = { state.emailError?.let { Text(it.asString()) } },
-                colors = glassFieldColors(),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Password field with the show/hide eye toggle
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
-                label = { Text("Password") },
-                singleLine = true,
-                isError = state.passwordError != null,
-                supportingText = { state.passwordError?.let { Text(it.asString()) } },
-                visualTransformation = if (state.isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                trailingIcon = {
-                    IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
-                        Icon(
-                            imageVector = if (state.isPasswordVisible) {
-                                Icons.Filled.VisibilityOff
-                            } else {
-                                Icons.Filled.Visibility
-                            },
-                            contentDescription = if (state.isPasswordVisible) {
-                                "Hide password"
-                            } else {
-                                "Show password"
-                            },
-                            tint = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
-                },
-                colors = glassFieldColors(),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(28.dp))
-
-            // Solid cyan pill CTA — glass buttons fail contrast, so the primary action is bold.
-            Button(
-                onClick = { onAction(LoginAction.OnLoginClick) },
-                enabled = !state.isLoading,
-                shape = RoundedCornerShape(percent = 50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = Color.Black
-                ),
+            // --- The liquid-glass card: form fields + primary CTA only ---
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .liquidGlass(hazeState)
+                    .padding(horizontal = 24.dp, vertical = 32.dp)
             ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        strokeWidth = 2.dp,
-                        color = Color.Black
-                    )
-                } else {
-                    Text(
-                        text = "Log in",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                // Email field
+                OutlinedTextField(
+                    value = state.email,
+                    onValueChange = { onAction(LoginAction.OnEmailChange(it)) },
+                    label = { Text("Email") },
+                    singleLine = true,
+                    isError = state.emailError != null,
+                    supportingText = { state.emailError?.let { Text(it.asString()) } },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Email,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    },
+                    colors = glassFieldColors(),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                // Password field: Lock leading icon + the show/hide eye toggle trailing.
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = { onAction(LoginAction.OnPasswordChange(it)) },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    isError = state.passwordError != null,
+                    supportingText = { state.passwordError?.let { Text(it.asString()) } },
+                    visualTransformation = if (state.isPasswordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { onAction(LoginAction.OnTogglePasswordVisibility) }) {
+                            Icon(
+                                imageVector = if (state.isPasswordVisible) {
+                                    Icons.Filled.VisibilityOff
+                                } else {
+                                    Icons.Filled.Visibility
+                                },
+                                contentDescription = if (state.isPasswordVisible) {
+                                    "Hide password"
+                                } else {
+                                    "Show password"
+                                },
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    },
+                    colors = glassFieldColors(),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(28.dp))
+
+                // Solid cyan pill CTA — glass buttons fail contrast, so the primary action is bold.
+                Button(
+                    onClick = { onAction(LoginAction.OnLoginClick) },
+                    enabled = !state.isLoading,
+                    shape = RoundedCornerShape(percent = 50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = Color.Black
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.Black
+                        )
+                    } else {
+                        Text(
+                            text = "Log in",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
-            TextButton(
-                onClick = { onAction(LoginAction.OnSignUpClick) },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
+            // --- Footer (OUTSIDE the card): switch to sign up ---
+            TextButton(onClick = { onAction(LoginAction.OnSignUpClick) }) {
                 Text(
-                    text = "Don't have an account? Sign up",
-                    color = Color.White.copy(alpha = 0.8f)
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(color = Color.White.copy(alpha = 0.7f))) {
+                            append("Don't have an account? ")
+                        }
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)) {
+                            append("Sign Up")
+                        }
+                    }
                 )
             }
         }

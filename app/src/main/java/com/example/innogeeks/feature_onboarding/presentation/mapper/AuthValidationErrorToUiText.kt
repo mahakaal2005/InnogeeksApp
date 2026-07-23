@@ -9,6 +9,7 @@ import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidationError
 // enum => match by VALUE (no `is`), and all 4 cases are covered so no `else` needed.
 fun AuthValidationError.toUiText() : UiText{
     return when(this){
+        AuthValidationError.EMPTY_NAME -> UiText.StringResource(R.string.error_empty_name)
         AuthValidationError.EMPTY_EMAIL -> UiText.StringResource(R.string.error_empty_email)
         AuthValidationError.INVALID_EMAIL -> UiText.StringResource(R.string.error_invalid_email)
         AuthValidationError.EMPTY_PASSWORD -> UiText.StringResource(R.string.error_empty_password)
