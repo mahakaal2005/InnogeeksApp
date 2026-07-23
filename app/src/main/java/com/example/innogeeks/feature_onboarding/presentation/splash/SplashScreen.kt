@@ -47,8 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.innogeeks.R
 import com.example.innogeeks.core.presentation.ObserveAsEvents
-import com.example.innogeeks.feature_onboarding.presentation.components.AuthGlowBackground
-import com.example.innogeeks.feature_onboarding.presentation.components.liquidGlass
+import com.example.innogeeks.core.presentation.components.AuthGlowBackground
+import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 

@@ -1,0 +1,8 @@
+feat(core): implement home scaffold, glass nav, and enforce dark theme
+
+- Abstract Koin from MainScaffold using slot hoisting to fix Preview crashes.
+- Extract AuthComponents to core/GlassComponents.kt for app-wide use.
+- Build HomeScreen UI structure with HazeState blur integration.
+- Architect InnogeeksBottomNav with elastic liquid stretch and expanding text animation via onGloballyPositioned.
+- Enforce strict dark theme system-wide in Theme.kt, MainActivity.kt, and AuthGlowBackground.
+- Document session 11 and archive experimental nav animations.

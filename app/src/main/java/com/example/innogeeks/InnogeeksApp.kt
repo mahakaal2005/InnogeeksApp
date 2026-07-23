@@ -18,11 +18,14 @@ class InnogeeksApp : Application(){
         startKoin {
             androidContext(this@InnogeeksApp)
             modules(
-                // core (shared across features) — listed first for readability, not required by Koin
+                // core
                 coreDataModule,
                 // feature: onboarding
                 onboardingDataModule,
-                onboardingPresentationModule
+                onboardingPresentationModule,
+                // feature: home
+                com.example.innogeeks.feature_home.data.di.homeDataModule,
+                com.example.innogeeks.feature_home.presentation.di.homePresentationModule
             )
         }
     }

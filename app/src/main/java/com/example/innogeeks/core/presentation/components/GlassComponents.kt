@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_onboarding.presentation.components
+package com.example.innogeeks.core.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,6 +48,7 @@ fun AuthGlowBackground(hazeState: HazeState, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .hazeSource(hazeState)
     ) {
         GlowBlob(

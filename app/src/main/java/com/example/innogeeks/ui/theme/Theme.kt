@@ -253,26 +253,17 @@ val unspecified_scheme = ColorFamily(
 
 @Composable
 fun InnogeeksTheme(
-    // TODO: force dark app-wide for now (design is dark-first); revisit light mode later.
     darkTheme: Boolean = true,
-    // Dynamic color OFF so our logo-blue brand always wins over wallpaper colors (Android 12+).
     dynamicColor: Boolean = false,
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
-  val colorScheme = when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-          val context = LocalContext.current
-          if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-      
-      darkTheme -> darkScheme
-      else -> lightScheme
-  }
+    // App design is strictly dark-first; enforce darkScheme globally.
+    val colorScheme = darkScheme
 
-  MaterialTheme(
-    colorScheme = colorScheme,
-    typography = AppTypography,
-    content = content
-  )
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = AppTypography,
+        content = content
+    )
 }
 
