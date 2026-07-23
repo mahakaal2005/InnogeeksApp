@@ -53,7 +53,7 @@ import com.example.innogeeks.feature_onboarding.presentation.components.glassFie
 import com.example.innogeeks.feature_onboarding.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -84,7 +84,7 @@ fun LoginRoot(
     )
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
+
 @Composable
 fun LoginScreen(
     state: LoginState,

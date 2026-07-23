@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+import dev.chrisbanes.haze.blur.blurEffect
+import dev.chrisbanes.haze.blur.materials.HazeMaterials
 
 // Shared onboarding UI building blocks, so Login/SignUp (and future auth screens) don't
 // duplicate the glassmorphism styling. Extracted from LoginScreen once a 2nd screen needed it.
@@ -68,29 +68,32 @@ fun AuthGlowBackground(hazeState: HazeState, modifier: Modifier = Modifier) {
 
 // THE single liquid-glass recipe. Every auth card (login, signup, splash, intro) applies
 // this so the look is defined in ONE place — change it here, every screen updates.
-// Liquid glass vs plain glassmorphism:
-//  - HazeMaterials.thin() = lighter frosting so the brand glow behind actually shows through
-//    (thick() read as an opaque dark slab, not glass)
-//  - a bluish glow border (brand cyan up top fading to primary) = light catching the edge
-// clip first so the frost + border follow the rounded shape.
+// Haze 2.0: blurEffect{} is a plain (non-composable) builder lambda, so all @Composable
+// calls (HazeMaterials.thin, MaterialTheme colors) must be resolved HERE in composable scope
+// first, then passed into the non-composable lambdas as plain values.
 @Composable
-@OptIn(ExperimentalHazeMaterialsApi::class)
 fun Modifier.liquidGlass(
     hazeState: HazeState,
     cornerRadius: Dp = 28.dp
-): Modifier = this
-    .clip(RoundedCornerShape(cornerRadius))
-    .hazeEffect(state = hazeState, style = HazeMaterials.thin())
-    .border(
-        width = 1.5.dp,
-        brush = Brush.verticalGradient(
-            listOf(
-                MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),  // bright cyan top edge
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)    // fading brand blue below
-            )
-        ),
-        shape = RoundedCornerShape(cornerRadius)
-    )
+): Modifier {
+    // Resolve all @Composable calls here, before entering any non-composable lambda.
+    val glassStyle = HazeMaterials.ultraThin()
+    val topColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+    val bottomColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+
+    return this
+        .clip(RoundedCornerShape(cornerRadius))
+        .hazeEffect(state = hazeState) {
+            blurEffect {
+                style = glassStyle   // plain value, no composable call inside lambda
+            }
+        }
+        .border(
+            width = 1.5.dp,
+            brush = Brush.verticalGradient(listOf(topColor, bottomColor)),
+            shape = RoundedCornerShape(cornerRadius)
+        )
+}
 
 // Transparent field colors so the frosted glass shows through, with light borders/text.
 @Composable

@@ -55,7 +55,8 @@ dependencies {
 
     // Haze — real backdrop blur for glassmorphism (glass nav + login card)
     implementation(libs.haze)
-    implementation(libs.haze.materials)
+    implementation(libs.haze.blur)
+    implementation(libs.haze.blur.materials)
 
     // Koin — dependency injection
     implementation(libs.koin.android)

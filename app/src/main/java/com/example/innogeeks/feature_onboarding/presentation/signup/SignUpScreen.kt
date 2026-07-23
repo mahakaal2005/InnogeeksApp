@@ -60,7 +60,7 @@ import com.example.innogeeks.feature_onboarding.presentation.components.glassFie
 import com.example.innogeeks.feature_onboarding.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -83,7 +83,7 @@ fun SignUpRoot(
     SignUpScreen(state = state, onAction = viewModel::onAction)
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SignUpScreen(
     state: SignUpState,

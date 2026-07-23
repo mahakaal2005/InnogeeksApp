@@ -50,8 +50,7 @@ import com.example.innogeeks.feature_onboarding.presentation.components.liquidGl
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
+
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -91,7 +90,7 @@ fun IntroRoot(
     )
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
+
 @Composable
 fun IntroScreen(
     state: IntroState,

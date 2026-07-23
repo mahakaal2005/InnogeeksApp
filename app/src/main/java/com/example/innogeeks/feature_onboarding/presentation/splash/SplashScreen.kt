@@ -51,7 +51,7 @@ import com.example.innogeeks.feature_onboarding.presentation.components.AuthGlow
 import com.example.innogeeks.feature_onboarding.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -74,7 +74,7 @@ fun SplashRoot(
     SplashScreen(state = state)
 }
 
-@OptIn(ExperimentalHazeMaterialsApi::class)
+
 @Composable
 fun SplashScreen(
     state: SplashState,
