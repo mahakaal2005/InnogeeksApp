@@ -60,7 +60,7 @@ fun HomeRoot(
         hazeState = hazeState,
         onAction = viewModel::onAction,
         // Until a /me endpoint exists, the email local-part is the only initials source.
-        initials = (session as? Session.Registered)?.collegeEmail?.toInitials(),
+        initials = (session as? Session.Authenticated)?.collegeEmail?.toInitials(),
         onLoginClick = onNavigateToAuth
     )
 }

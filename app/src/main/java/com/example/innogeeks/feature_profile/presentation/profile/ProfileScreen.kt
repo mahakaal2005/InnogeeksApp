@@ -38,6 +38,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.domain.model.UserDomain
+import com.example.innogeeks.core.domain.model.UserRole
 import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.ExpandableRow
@@ -98,7 +100,7 @@ fun ProfileScreen(
 
             when (val session = state.session) {
                 Session.Guest -> guestProfile(hazeState = hazeState, onAction = onAction)
-                is Session.Registered -> registeredProfile(
+                is Session.Authenticated -> registeredProfile(
                     state = state,
                     hazeState = hazeState,
                     onAction = onAction
@@ -178,7 +180,7 @@ private fun LazyListScope.registeredProfile(
     hazeState: HazeState,
     onAction: (ProfileAction) -> Unit
 ) {
-    val session = state.session as? Session.Registered ?: return
+    val session = state.session as? Session.Authenticated ?: return
     val profile = state.profile
 
     item {
@@ -578,7 +580,11 @@ private fun String.toInitials(): String =
         .joinToString("")
         .ifEmpty { "?" }
 
-private val registeredSession = Session.Registered(collegeEmail = "ayush.kumar@kiet.edu")
+private val registeredSession = Session.Authenticated(
+    collegeEmail = "ayush.kumar@kiet.edu",
+    role = UserRole.REGISTERED,
+    domain = null
+)
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
 @Composable
@@ -610,7 +616,11 @@ private fun ProfileScreenRegisteredExpandedPreview() {
     InnogeeksTheme {
         ProfileScreen(
             state = ProfileState(
-                session = registeredSession,
+                session = Session.Authenticated(
+                    collegeEmail = "ayush.kumar@kiet.edu",
+                    role = UserRole.COORDINATOR,
+                    domain = UserDomain.ANDROID
+                ),
                 expandedSection = ProfileSection.ACADEMIC,
                 profile = com.example.innogeeks.feature_profile.domain.model.StudentProfile(
                     collegeEmail = "atul@kiet.edu",
@@ -618,7 +628,8 @@ private fun ProfileScreenRegisteredExpandedPreview() {
                     phone = "+91 98765 43210",
                     batch = "2024-28",
                     year = 2,
-                    role = "COORDINATOR"
+                    role = "COORDINATOR",
+                    domain = "ANDROID"
                 )
             ),
             hazeState = HazeState(),
@@ -633,7 +644,8 @@ private val previewProfile = com.example.innogeeks.feature_profile.domain.model.
     phone = "+91 98765 43210",
     batch = "2025-29",
     year = 1,
-    role = "FIRST_YEAR_STUDENT"
+    role = "REGISTERED",
+    domain = null
 )
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)

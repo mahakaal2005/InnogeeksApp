@@ -6,5 +6,6 @@ data class StudentProfile(
     val phone: String?,
     val batch: String?,
     val year: Int?,
-    val role: String
+    val role: String,
+    val domain: String?
 )

@@ -18,13 +18,13 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
 
     override suspend fun checkEmail(collegeEmail: String): Result<NextStep, AuthError> =
         httpClient.postEnveloped<EmailGateRequest, EmailGateResponse>(
-            route = "/auth/email-gate",
+            route = "/api/v1/app/auth/email-gate",
             body = EmailGateRequest(collegeEmail = collegeEmail)
         ).mapData { it.toNextStep() }.mapError { it.toAuthError() }
 
     override suspend fun requestVerificationCode(collegeEmail: String): Result<Unit, AuthError> =
         httpClient.postEnveloped<VerificationCodeRequest, VerificationCodeResponse>(
-            route = "/auth/verification-code",
+            route = "/api/v1/app/auth/verification-code",
             body = VerificationCodeRequest(collegeEmail = collegeEmail)
         ).asEmptyResult().mapError { it.toAuthError() }
 
@@ -33,7 +33,7 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
         code: String
     ): Result<String, AuthError> =
         httpClient.postEnveloped<VerifyCodeRequest, VerifyCodeResponse>(
-            route = "/auth/verify-code",
+            route = "/api/v1/app/auth/verify-code",
             body = VerifyCodeRequest(collegeEmail = collegeEmail, code = code)
         ).mapData { it.passwordSetupToken }.mapError { it.toAuthError() }
 
@@ -42,7 +42,7 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
         password: String
     ): Result<String, AuthError> =
         httpClient.postEnveloped<SetPasswordRequest, SetPasswordResponse>(
-            route = "/auth/set-password",
+            route = "/api/v1/app/auth/set-password",
             body = SetPasswordRequest(passwordSetupToken = passwordSetupToken, password = password)
         ).mapData { it.accessToken }.mapError { it.toAuthError() }
 
@@ -51,13 +51,13 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
         password: String
     ): Result<String, AuthError> =
         httpClient.postEnveloped<LoginRequest, LoginResponse>(
-            route = "/auth/login",
+            route = "/api/v1/app/auth/login",
             body = LoginRequest(collegeEmail = collegeEmail, password = password)
         ).mapData { it.accessToken }.mapError { it.toAuthError() }
 
     override suspend fun requestPasswordResetCode(collegeEmail: String): Result<Unit, AuthError> =
         httpClient.postEnveloped<PasswordResetRequestRequest, PasswordResetRequestResponse>(
-            route = "/auth/password-reset/request",
+            route = "/api/v1/app/auth/password-reset/request",
             body = PasswordResetRequestRequest(collegeEmail = collegeEmail)
         ).asEmptyResult().mapError { it.toAuthError() }
 
@@ -66,7 +66,7 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
         code: String
     ): Result<String, AuthError> =
         httpClient.postEnveloped<PasswordResetVerifyRequest, PasswordResetVerifyResponse>(
-            route = "/auth/password-reset/verify",
+            route = "/api/v1/app/auth/password-reset/verify",
             body = PasswordResetVerifyRequest(collegeEmail = collegeEmail, code = code)
         ).mapData { it.passwordResetToken }.mapError { it.toAuthError() }
 
@@ -75,13 +75,13 @@ class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSou
         password: String
     ): Result<String, AuthError> =
         httpClient.postEnveloped<PasswordResetCompleteRequest, PasswordResetCompleteResponse>(
-            route = "/auth/password-reset/complete",
+            route = "/api/v1/app/auth/password-reset/complete",
             body = PasswordResetCompleteRequest(passwordResetToken = passwordResetToken, password = password)
         ).mapData { it.accessToken }.mapError { it.toAuthError() }
 
     override suspend fun logout(): Result<Unit, AuthError> =
         httpClient.postEnveloped<Unit, LogoutResponse>(
-            route = "/auth/logout",
+            route = "/api/v1/app/auth/logout",
             body = Unit
         ).asEmptyResult().mapError { it.toAuthError() }
 }

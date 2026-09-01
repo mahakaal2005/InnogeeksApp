@@ -9,7 +9,8 @@ data class ProfileDto(
     val phone: String? = null,
     val batch: String? = null,
     val year: Int? = null,
-    val role: String
+    val role: String,
+    val domain: String? = null
 )
 
 // PATCH /me body — batch/year/role are admin-panel-only, so only these two are self-editable.

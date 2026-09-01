@@ -13,11 +13,12 @@ class FakeProfileRemoteDataSource : ProfileRemoteDataSource {
         collegeEmail = "setup@kiet.edu",
         fullName = "Atul Kumar",
         phone = "+91 98765 43210",
-        // Phase 1 only recruits first-years, so role is always FIRST_YEAR_STUDENT
-        // (APP_API_CONTRACT.md §12) — batch/year must describe an actual first-year.
+        // Matches the backend's role ladder (APP_API_CONTRACT.md §12): REGISTERED until an
+        // admin promotes, domain stays null until then.
         batch = "2025-29",
         year = 1,
-        role = "FIRST_YEAR_STUDENT"
+        role = "REGISTERED",
+        domain = null
     )
 
     override suspend fun getProfile(): Result<ProfileDto, DataError.Network> {

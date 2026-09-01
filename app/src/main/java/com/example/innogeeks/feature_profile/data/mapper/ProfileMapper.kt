@@ -9,5 +9,6 @@ fun ProfileDto.toStudentProfile(): StudentProfile = StudentProfile(
     phone = phone,
     batch = batch,
     year = year,
-    role = role
+    role = role,
+    domain = domain
 )

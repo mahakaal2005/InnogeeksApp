@@ -13,10 +13,10 @@ class KtorProfileRemoteDataSource(
 ) : ProfileRemoteDataSource {
 
     override suspend fun getProfile(): Result<ProfileDto, DataError.Network> =
-        httpClient.get(route = "/me")
+        httpClient.get(route = "/api/v1/app/me")
 
     override suspend fun updateProfile(
         request: UpdateProfileRequestDto
     ): Result<ProfileDto, DataError.Network> =
-        httpClient.patch(route = "/me", body = request)
+        httpClient.patch(route = "/api/v1/app/me", body = request)
 }

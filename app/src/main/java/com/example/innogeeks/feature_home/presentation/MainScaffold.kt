@@ -56,6 +56,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.innogeeks.core.domain.model.UserRole
 import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.presentation.components.AuthGlowBackground
 import com.example.innogeeks.core.presentation.components.liquidGlass
@@ -94,8 +95,11 @@ private val registeredTabs = listOf(
     BottomNavTab("Profile", Icons.Filled.Person),
 )
 
-// Member/Coordinator tabs are Phase 4 — Session has no Member/Coordinator variant yet,
-// so there's nothing to route to. Add the tab set back when that session state exists.
+// Single place role -> tab-set is decided. Phase 4's actual Member/Coordinator/Admin nav isn't
+// designed yet, so they reuse registeredTabs for now — update just this function when it is.
+private fun UserRole.tabs(): List<BottomNavTab> = when (this) {
+    UserRole.REGISTERED, UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> registeredTabs
+}
 
 @Composable
 fun MainScaffold(
@@ -108,25 +112,23 @@ fun MainScaffold(
     var showBottomBar by remember { mutableStateOf(true) }
     LaunchedEffect(selectedTab) { showBottomBar = true }
 
-    // Guest and Registered have different tab counts/order, and this composable survives a
+    // Guest and Authenticated have different tab counts/order, and this composable survives a
     // login/logout (session just recomposes, nothing navigates) — without this, selectedTab
     // keeps its old index into the NEW tab list, landing on the wrong tab or, if the new list
     // is shorter, on an index the `when` below doesn't handle at all (blank screen).
-    val isRegistered = session is Session.Registered
-    var previousIsRegistered by rememberSaveable { mutableStateOf(isRegistered) }
-    LaunchedEffect(isRegistered) {
-        if (previousIsRegistered != isRegistered) {
+    val isAuthenticated = session is Session.Authenticated
+    var previousIsAuthenticated by rememberSaveable { mutableStateOf(isAuthenticated) }
+    LaunchedEffect(isAuthenticated) {
+        if (previousIsAuthenticated != isAuthenticated) {
             selectedTab = 0
         }
-        previousIsRegistered = isRegistered
+        previousIsAuthenticated = isAuthenticated
     }
 
     // Determine tab layout based on session
     val tabs = when (session) {
         Session.Guest -> guestTabs
-        is Session.Registered -> registeredTabs // first-year students
-        // TODO: When backend fixes role field, check session.role for MEMBER/COORDINATOR
-        // For now, all Registered users get registeredTabs until we have actual role data
+        is Session.Authenticated -> session.role.tabs()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -147,7 +149,7 @@ fun MainScaffold(
                         3 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
                     }
                 }
-                is Session.Registered -> {
+                is Session.Authenticated -> {
                     when (selectedTab) {
                         0 -> TrackerRoot(
                             hazeState = hazeState,

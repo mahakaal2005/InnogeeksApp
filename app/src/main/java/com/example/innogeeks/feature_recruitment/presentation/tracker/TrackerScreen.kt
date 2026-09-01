@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
+import com.example.innogeeks.feature_recruitment.domain.model.Interview
 import com.example.innogeeks.feature_recruitment.domain.model.RecruitmentStatus
 import com.example.innogeeks.feature_recruitment.domain.model.TestSlot
 import com.example.innogeeks.ui.theme.InnogeeksTheme
@@ -197,8 +198,6 @@ private data class JourneyStageUi(
     val decision: Decision? = null
 )
 
-// Interview has no backend field yet (TODO(phase2)), so it can only be inferred "done" once a
-// decision exists at all — the app has no other signal that the interview happened.
 private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
     val afterDecision = decision != Decision.PENDING
 
@@ -225,7 +224,11 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
         ),
         JourneyStageUi(
             title = "Interview",
-            subtitle = if (afterDecision) "Completed" else "Scheduled after your test",
+            subtitle = when {
+                afterDecision -> interview.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
+                interview.assigned -> "Interview scheduled: ${interview.startTime?.let { formatDateTime(it) } ?: "TBD"}"
+                else -> "Not scheduled yet"
+            },
             state = if (afterDecision) StageState.DONE else StageState.PENDING,
             icon = Icons.Default.Groups
         )
@@ -634,7 +637,8 @@ private fun TrackerScreenPendingPreview() {
                     paid = true,
                     decision = Decision.PENDING,
                     decisionNote = null,
-                    testSlot = TestSlot(booked = false, startTime = null, endTime = null)
+                    testSlot = TestSlot(booked = false, startTime = null, endTime = null),
+                    interview = Interview(assigned = false, startTime = null, endTime = null, location = null, meetingUrl = null)
                 )
             ),
             hazeState = HazeState(),
@@ -657,6 +661,13 @@ private fun TrackerScreenTestBookedPreview() {
                         booked = true,
                         startTime = "2026-08-15T10:00:00Z",
                         endTime = "2026-08-15T11:00:00Z"
+                    ),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null
                     )
                 )
             ),
@@ -680,6 +691,13 @@ private fun TrackerScreenWaitlistedPreview() {
                         booked = true,
                         startTime = "2026-08-15T10:00:00Z",
                         endTime = "2026-08-15T11:00:00Z"
+                    ),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null
                     )
                 )
             ),
@@ -703,6 +721,13 @@ private fun TrackerScreenRejectedPreview() {
                         booked = true,
                         startTime = "2026-08-15T10:00:00Z",
                         endTime = "2026-08-15T11:00:00Z"
+                    ),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null
                     )
                 )
             ),
@@ -726,6 +751,13 @@ private fun TrackerScreenSelectedPreview() {
                         booked = true,
                         startTime = "2026-08-15T10:00:00Z",
                         endTime = "2026-08-15T11:00:00Z"
+                    ),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null
                     )
                 )
             ),

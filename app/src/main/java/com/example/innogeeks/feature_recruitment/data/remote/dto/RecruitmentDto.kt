@@ -12,7 +12,8 @@ data class RecruitmentDto(
     val paid: Boolean,
     val decision: String,
     val decisionNote: String? = null,
-    val testSlot: TestSlotDto
+    val testSlot: TestSlotDto,
+    val interview: InterviewDto
 )
 
 @Serializable
@@ -20,4 +21,13 @@ data class TestSlotDto(
     val booked: Boolean,
     val startTime: String? = null,
     val endTime: String? = null
+)
+
+@Serializable
+data class InterviewDto(
+    val assigned: Boolean,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val location: String? = null,
+    val meetingUrl: String? = null
 )

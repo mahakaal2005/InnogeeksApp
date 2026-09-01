@@ -31,7 +31,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             sessionRepository.session.collect { session ->
                 _state.update { it.copy(session = session) }
-                if (session is Session.Registered && _state.value.profile == null) {
+                if (session is Session.Authenticated && _state.value.profile == null) {
                     loadProfile()
                 }
             }
