@@ -56,13 +56,18 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.innogeeks.core.domain.error.DataError
 import com.example.innogeeks.core.domain.model.UserRole
 import com.example.innogeeks.core.domain.session.Session
+import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.components.AuthGlowBackground
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_domains.presentation.domains.DomainsRoot
 import com.example.innogeeks.feature_events.presentation.events.EventsRoot
 import com.example.innogeeks.feature_profile.presentation.profile.ProfileRoot
+import com.example.innogeeks.feature_recruitment.domain.model.Decision
+import com.example.innogeeks.feature_recruitment.domain.repository.RecruitmentRepository
+import com.example.innogeeks.feature_recruitment.domain.use_case.GetRecruitmentStatusUseCase
 import com.example.innogeeks.feature_recruitment.presentation.tracker.TrackerRoot
 import com.example.innogeeks.feature_resources.presentation.resources.ResourcesRoot
 import com.example.innogeeks.feature_home.domain.model.ClubStats
@@ -72,6 +77,7 @@ import com.example.innogeeks.feature_home.presentation.home.HomeState
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import org.koin.compose.koinInject
 
 private data class BottomNavTab(
     val label: String,
@@ -95,40 +101,75 @@ private val registeredTabs = listOf(
     BottomNavTab("Profile", Icons.Filled.Person),
 )
 
+// REGISTERED + REJECTED: Tracker has nothing left to show; Resources becomes tab 0 as the one
+// thing the app still offers after a terminal decision (the fee was already paid).
+private val rejectedTabs = listOf(
+    BottomNavTab("Resources", Icons.Filled.FolderOpen),
+    BottomNavTab("Domains", Icons.Filled.Category),
+    BottomNavTab("Events", Icons.Filled.CalendarMonth),
+    BottomNavTab("Profile", Icons.Filled.Person),
+)
+
 // Single place role -> tab-set is decided. Phase 4's actual Member/Coordinator/Admin nav isn't
 // designed yet, so they reuse registeredTabs for now — update just this function when it is.
 private fun UserRole.tabs(): List<BottomNavTab> = when (this) {
     UserRole.REGISTERED, UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> registeredTabs
 }
 
+// Guest / normal Authenticated / REJECTED all have different tab counts+content, and this
+// composable survives login/logout/decision changes in place (session just recomposes, nothing
+// navigates) — this key drives the reset-to-0 effect below.
+private enum class TabMode { GUEST, AUTHENTICATED, REJECTED }
+
 @Composable
 fun MainScaffold(
     session: Session = Session.Guest,
     onNavigateToAuth: () -> Unit = {},
-    homeContent: (@Composable (HazeState) -> Unit)? = null
+    homeContent: (@Composable (HazeState) -> Unit)? = null,
+    getRecruitmentStatusUseCase: GetRecruitmentStatusUseCase = koinInject()
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val hazeState = remember { HazeState() }
     var showBottomBar by remember { mutableStateOf(true) }
     LaunchedEffect(selectedTab) { showBottomBar = true }
 
-    // Guest and Authenticated have different tab counts/order, and this composable survives a
-    // login/logout (session just recomposes, nothing navigates) — without this, selectedTab
-    // keeps its old index into the NEW tab list, landing on the wrong tab or, if the new list
-    // is shorter, on an index the `when` below doesn't handle at all (blank screen).
-    val isAuthenticated = session is Session.Authenticated
-    var previousIsAuthenticated by rememberSaveable { mutableStateOf(isAuthenticated) }
-    LaunchedEffect(isAuthenticated) {
-        if (previousIsAuthenticated != isAuthenticated) {
-            selectedTab = 0
+    // Only REGISTERED users can ever be rejected — Member/Coordinator/Admin already passed
+    // recruitment, so skip the fetch entirely for them (no network call, no stale-value risk).
+    var decision by remember { mutableStateOf<Decision?>(null) }
+    LaunchedEffect(session) {
+        decision = if (session is Session.Authenticated && session.role == UserRole.REGISTERED) {
+            when (val result = getRecruitmentStatusUseCase()) {
+                is Result.Success -> result.data.decision
+                is Result.Error -> null // fetch failed: fall back to the normal Tracker layout
+            }
+        } else {
+            null
         }
-        previousIsAuthenticated = isAuthenticated
     }
 
-    // Determine tab layout based on session
-    val tabs = when (session) {
-        Session.Guest -> guestTabs
-        is Session.Authenticated -> session.role.tabs()
+    val tabMode = when {
+        session is Session.Guest -> TabMode.GUEST
+        session is Session.Authenticated && session.role == UserRole.REGISTERED &&
+            decision == Decision.REJECTED -> TabMode.REJECTED
+        else -> TabMode.AUTHENTICATED
+    }
+
+    // Without this, selectedTab keeps its old index into the NEW tab list on a mode change,
+    // landing on the wrong tab or, if the new list is shorter, on an index the `when` below
+    // doesn't handle at all (blank screen).
+    var previousTabMode by rememberSaveable { mutableStateOf(tabMode) }
+    LaunchedEffect(tabMode) {
+        if (previousTabMode != tabMode) {
+            selectedTab = 0
+        }
+        previousTabMode = tabMode
+    }
+
+    // Determine tab layout based on session + recruitment decision
+    val tabs = when (tabMode) {
+        TabMode.GUEST -> guestTabs
+        TabMode.REJECTED -> rejectedTabs
+        TabMode.AUTHENTICATED -> (session as Session.Authenticated).role.tabs()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -150,15 +191,24 @@ fun MainScaffold(
                     }
                 }
                 is Session.Authenticated -> {
-                    when (selectedTab) {
-                        0 -> TrackerRoot(
-                            hazeState = hazeState,
-                            onNavigateToResources = { selectedTab = 2 }
-                        )
-                        1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
-                        2 -> ResourcesRoot(hazeState = hazeState)
-                        3 -> EventsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
-                        4 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
+                    if (tabMode == TabMode.REJECTED) {
+                        when (selectedTab) {
+                            0 -> ResourcesRoot(hazeState = hazeState)
+                            1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
+                            2 -> EventsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
+                            3 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
+                        }
+                    } else {
+                        when (selectedTab) {
+                            0 -> TrackerRoot(
+                                hazeState = hazeState,
+                                onNavigateToResources = { selectedTab = 2 }
+                            )
+                            1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
+                            2 -> ResourcesRoot(hazeState = hazeState)
+                            3 -> EventsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
+                            4 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
+                        }
                     }
                 }
             }
@@ -353,11 +403,20 @@ private fun PlaceholderScreen(
     }
 }
 
+// No Koin context exists in previews — koinInject() would throw, so previews pass a stub
+// use case directly. Session defaults to Guest here anyway, so it's never actually invoked.
+private val previewRecruitmentUseCase = GetRecruitmentStatusUseCase(
+    recruitmentRepository = object : RecruitmentRepository {
+        override suspend fun getRecruitmentStatus() = Result.Error(DataError.Network.UNKNOWN)
+    }
+)
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun MainScaffoldPreview() {
     InnogeeksTheme {
         MainScaffold(
+            getRecruitmentStatusUseCase = previewRecruitmentUseCase,
             homeContent = { hazeState ->
                 HomeScreen(
                     state = HomeState(

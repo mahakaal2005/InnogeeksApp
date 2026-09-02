@@ -238,11 +238,20 @@ private fun ResourceDomainCard(
         )
 
         Column(modifier = Modifier.fillMaxSize().padding(start = 8.dp)) {
-            Image(
-                painter = painterResource(id = domainIconRes(domain.id)),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(accent.copy(alpha = 0.14f))
+                    .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = domainIconRes(domain.id)),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = domain.name,

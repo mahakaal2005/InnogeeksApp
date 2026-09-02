@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.SentimentSatisfied
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -527,16 +526,8 @@ private fun NonSelectionCard(
             message = "We'll notify you the moment a seat opens up — no action needed right now. " +
                 "In the meantime, the Resources tab is open to you."
         }
-        Decision.REJECTED -> {
-            icon = Icons.Default.SentimentSatisfied
-            headline = "Not selected this time"
-            // Recruitment is first-year-only, so there is no next cycle to point someone to.
-            // Lifetime Resources access is the one thing this app actually offers afterward —
-            // never imply reapplying is an option.
-            message = "Thanks for going through the process. Recruitment is open to first-years " +
-                "only, so this is the final decision for this cycle. You keep full access to " +
-                "Resources for as long as you want it — use it to keep building."
-        }
+        // REJECTED is terminal — MainScaffold routes those users straight to a Resources-first
+        // tab layout and Tracker is never shown, so there's no card to render for it here.
         else -> return
     }
 
@@ -707,35 +698,9 @@ private fun TrackerScreenWaitlistedPreview() {
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
-@Composable
-private fun TrackerScreenRejectedPreview() {
-    InnogeeksTheme {
-        TrackerScreen(
-            state = TrackerState(
-                recruitmentStatus = RecruitmentStatus(
-                    paid = true,
-                    decision = Decision.REJECTED,
-                    decisionNote = "Thanks for your effort in the test and interview this cycle.",
-                    testSlot = TestSlot(
-                        booked = true,
-                        startTime = "2026-08-15T10:00:00Z",
-                        endTime = "2026-08-15T11:00:00Z"
-                    ),
-                    interview = Interview(
-                        assigned = true,
-                        startTime = "2026-08-22T09:00:00Z",
-                        endTime = "2026-08-22T09:30:00Z",
-                        location = "Room 204, Innovation Block",
-                        meetingUrl = null
-                    )
-                )
-            ),
-            hazeState = HazeState(),
-            onAction = {}
-        )
-    }
-}
+// No TrackerScreenRejectedPreview — REJECTED is a terminal decision MainScaffold now routes
+// away from Tracker entirely (see MainScaffold.kt's TabMode.REJECTED), so this state is
+// unreachable in the running app.
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
 @Composable
