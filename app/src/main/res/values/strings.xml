@@ -32,4 +32,25 @@
     <string name="error_unsupported_version">This version of the app is out of date. Please update it.</string>
     <string name="error_password_too_long">Password must be 128 characters or fewer.</string>
     <string name="error_passwords_do_not_match">Passwords don\'t match.</string>
+    <string name="slot_picker_title_test">Pick your test slot</string>
+    <string name="slot_picker_title_interview">Pick your interview slot</string>
+    <string name="slot_picker_subtitle">Seats are first-come-first-serve. Pick a time you can make.</string>
+    <string name="slot_seats_left">%1$d of %2$d seats left</string>
+    <string name="slot_full">Full</string>
+    <string name="slot_yours">Your slot</string>
+    <string name="slot_confirm">Confirm slot</string>
+    <string name="slot_confirm_switch">Switch to this slot</string>
+    <string name="slot_confirming">Saving…</string>
+    <string name="slot_switching_off">Changing slots is turned off. Contact the Innogeeks team if you need a change.</string>
+    <string name="slot_empty">No slots are open right now. Check back soon.</string>
+    <string name="slot_retry">Retry</string>
+    <string name="slot_back">Back</string>
+    <string name="slot_error_full">That slot just filled up. Pick another one.</string>
+    <string name="slot_error_switching_disabled">Changing slots is turned off right now.</string>
+    <string name="slot_error_locked">Your current slot has already started.</string>
+    <string name="slot_error_closed">That slot is no longer open.</string>
+    <string name="slot_error_not_found">That slot is no longer available.</string>
+    <string name="slot_error_already_booked">Your booking just changed. Review the list and try again.</string>
+    <string name="slot_error_not_open">Interview booking opens after you pass the test.</string>
+    <string name="slot_error_already_decided">A decision has been made, so booking is closed.</string>
 </resources>

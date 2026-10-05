@@ -4,6 +4,7 @@ data class RecruitmentStatus(
     val paid: Boolean,
     val decision: Decision,
     val decisionNote: String?,
+    val testResult: TestResult = TestResult.PENDING,
     val testSlot: TestSlot,
     val interview: Interview
 )
@@ -15,10 +16,17 @@ enum class Decision {
     REJECTED
 }
 
+enum class TestResult {
+    PENDING,
+    PASSED,
+    FAILED
+}
+
 data class TestSlot(
     val booked: Boolean,
     val startTime: String?, // ISO 8601 string, null when not booked
-    val endTime: String?
+    val endTime: String?,
+    val switchingEnabled: Boolean = true
 )
 
 data class Interview(
@@ -26,5 +34,6 @@ data class Interview(
     val startTime: String?, // ISO 8601 string, null when not assigned
     val endTime: String?,
     val location: String?,
-    val meetingUrl: String?
+    val meetingUrl: String?,
+    val switchingEnabled: Boolean = true
 )

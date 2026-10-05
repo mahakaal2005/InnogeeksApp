@@ -67,6 +67,8 @@ import com.example.innogeeks.feature_domains.presentation.domains.DomainsRoot
 import com.example.innogeeks.feature_events.presentation.events.EventsRoot
 import com.example.innogeeks.feature_profile.presentation.profile.ProfileRoot
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
+import com.example.innogeeks.feature_recruitment.domain.model.SlotBookingFailure
+import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
 import com.example.innogeeks.feature_recruitment.domain.repository.RecruitmentRepository
 import com.example.innogeeks.feature_recruitment.domain.use_case.GetRecruitmentStatusUseCase
 import com.example.innogeeks.feature_recruitment.presentation.tracker.TrackerRoot
@@ -220,7 +222,8 @@ fun MainScaffold(
                         when (selectedTab) {
                             0 -> TrackerRoot(
                                 hazeState = hazeState,
-                                onNavigateToResources = { selectedTab = 2 }
+                                onNavigateToResources = { selectedTab = 2 },
+                                onBottomBarVisibilityChanged = { showBottomBar = it }
                             )
                             1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
                             2 -> ResourcesRoot(hazeState = hazeState)
@@ -426,6 +429,11 @@ private fun PlaceholderScreen(
 private val previewRecruitmentUseCase = GetRecruitmentStatusUseCase(
     recruitmentRepository = object : RecruitmentRepository {
         override suspend fun getRecruitmentStatus() = Result.Error(DataError.Network.UNKNOWN)
+        override suspend fun getTestSlotBooking() = Result.Error(DataError.Network.UNKNOWN)
+        override suspend fun getInterviewBooking() = Result.Error(DataError.Network.UNKNOWN)
+        override suspend fun getSlots(kind: SlotKind) = Result.Error(DataError.Network.UNKNOWN)
+        override suspend fun bookSlot(kind: SlotKind, slotId: String) =
+            Result.Error(SlotBookingFailure.Transport(DataError.Network.UNKNOWN))
     }
 )
 

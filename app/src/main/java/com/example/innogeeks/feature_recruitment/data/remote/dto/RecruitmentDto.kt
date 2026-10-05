@@ -12,6 +12,7 @@ data class RecruitmentDto(
     val paid: Boolean,
     val decision: String,
     val decisionNote: String? = null,
+    val testResult: String = "PENDING",
     val testSlot: TestSlotDto,
     val interview: InterviewDto
 )
@@ -20,7 +21,8 @@ data class RecruitmentDto(
 data class TestSlotDto(
     val booked: Boolean,
     val startTime: String? = null,
-    val endTime: String? = null
+    val endTime: String? = null,
+    val switchingEnabled: Boolean = true
 )
 
 @Serializable
@@ -29,7 +31,8 @@ data class InterviewDto(
     val startTime: String? = null,
     val endTime: String? = null,
     val location: String? = null,
-    val meetingUrl: String? = null
+    val meetingUrl: String? = null,
+    val switchingEnabled: Boolean = true
 )
 
 // GET /test-slot-booking — richer than RecruitmentDto.testSlot (carries the slot id and

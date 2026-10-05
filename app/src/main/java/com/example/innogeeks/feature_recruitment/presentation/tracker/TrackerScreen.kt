@@ -8,6 +8,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,11 +61,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
 import com.example.innogeeks.feature_recruitment.domain.model.Interview
 import com.example.innogeeks.feature_recruitment.domain.model.RecruitmentStatus
+import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
+import com.example.innogeeks.feature_recruitment.domain.model.TestResult
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerRoot
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerRoute
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.TrackerHomeRoute
 import com.example.innogeeks.feature_recruitment.domain.model.TestSlot
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
@@ -78,23 +91,56 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 
+// The slot picker is pushed on this tab's own NavHost, so Back returns to the journey. Its
+// bottom-bar visibility is reported up via onBottomBarVisibilityChanged (see MainScaffold).
 @Composable
 fun TrackerRoot(
     hazeState: HazeState,
     onNavigateToResources: () -> Unit = {},
+    onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
     viewModel: TrackerViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val navController = rememberNavController()
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    LaunchedEffect(backStackEntry) {
+        onBottomBarVisibilityChanged(backStackEntry?.destination?.hasRoute<SlotPickerRoute>() != true)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 TrackerEvent.NavigateToResources -> onNavigateToResources()
+                is TrackerEvent.NavigateToSlotPicker -> navController.navigate(SlotPickerRoute(event.kind))
             }
         }
     }
 
-    TrackerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
+    NavHost(
+        navController = navController,
+        startDestination = TrackerHomeRoute,
+        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
+        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
+    ) {
+        composable<TrackerHomeRoute> {
+            TrackerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
+        }
+        composable<SlotPickerRoute> { entry ->
+            val route: SlotPickerRoute = entry.toRoute()
+            SlotPickerRoot(
+                kind = route.kind,
+                hazeState = hazeState,
+                onBack = { navController.popBackStack() },
+                onBooked = {
+                    viewModel.onAction(TrackerAction.OnSlotsChanged)
+                    navController.popBackStack()
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -166,6 +212,7 @@ fun TrackerScreen(
                 JourneyStages(
                     stages = stages,
                     hazeState = hazeState,
+                    onSlotCtaClick = { onAction(TrackerAction.OnPickSlotClick(it)) },
                     modifier = Modifier.weight(1f)
                 )
 
@@ -189,12 +236,15 @@ fun TrackerScreen(
 // and drives its icon/color independent of the generic DONE/CURRENT/PENDING state below.
 private enum class StageState { DONE, CURRENT, PENDING }
 
+private data class StageCta(val label: String, val kind: SlotKind)
+
 private data class JourneyStageUi(
     val title: String,
     val subtitle: String,
     val state: StageState,
     val icon: ImageVector,
-    val decision: Decision? = null
+    val decision: Decision? = null,
+    val cta: StageCta? = null
 )
 
 private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
@@ -215,21 +265,36 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
             title = "Aptitude Test",
             subtitle = when {
                 afterDecision -> testSlot.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
+                testResult == TestResult.PASSED -> "Test cleared"
+                testResult == TestResult.FAILED -> "Test not cleared"
                 testSlot.booked -> "Slot booked: ${testSlot.startTime?.let { formatDateTime(it) } ?: "TBD"}"
-                else -> "Test slot not booked yet"
+                else -> "Pick a test slot"
             },
-            state = if (afterDecision) StageState.DONE else StageState.PENDING,
-            icon = Icons.Default.Schedule
+            state = if (afterDecision || testResult != TestResult.PENDING) StageState.DONE else StageState.PENDING,
+            icon = Icons.Default.Schedule,
+            // Once the admin records a result the slot is moot, so the picker closes.
+            cta = if (!afterDecision && testResult == TestResult.PENDING && (!testSlot.booked || testSlot.switchingEnabled)) {
+                StageCta(if (testSlot.booked) "Change slot" else "Pick test slot", SlotKind.TEST)
+            } else {
+                null
+            }
         ),
         JourneyStageUi(
             title = "Interview",
             subtitle = when {
                 afterDecision -> interview.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
                 interview.assigned -> "Interview scheduled: ${interview.startTime?.let { formatDateTime(it) } ?: "TBD"}"
-                else -> "Not scheduled yet"
+                testResult == TestResult.PASSED -> "Pick your interview slot"
+                testResult == TestResult.FAILED -> "Not available"
+                else -> "Opens once you pass the test"
             },
             state = if (afterDecision) StageState.DONE else StageState.PENDING,
-            icon = Icons.Default.Groups
+            icon = Icons.Default.Groups,
+            cta = if (!afterDecision && testResult == TestResult.PASSED && (!interview.assigned || interview.switchingEnabled)) {
+                StageCta(if (interview.assigned) "Change slot" else "Pick interview slot", SlotKind.INTERVIEW)
+            } else {
+                null
+            }
         )
     )
 
@@ -276,6 +341,7 @@ private val nodeAnchorSize = 24.dp
 private fun JourneyStages(
     stages: List<JourneyStageUi>,
     hazeState: HazeState,
+    onSlotCtaClick: (SlotKind) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -348,6 +414,7 @@ private fun JourneyStages(
                     stage = stage,
                     index = index,
                     hazeState = hazeState,
+                    onSlotCtaClick = onSlotCtaClick,
                     modifier = Modifier.onGloballyPositioned { coordinates ->
                         val bounds = coordinates.boundsInParent()
                         nodeCenters[index] = bounds.top + bounds.height / 2f
@@ -363,6 +430,7 @@ private fun JourneyStageRow(
     stage: JourneyStageUi,
     index: Int,
     hazeState: HazeState,
+    onSlotCtaClick: (SlotKind) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -472,6 +540,19 @@ private fun JourneyStageRow(
                 color = scheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp)
             )
+            if (stage.cta != null) {
+                if (isCurrent) {
+                    Button(
+                        onClick = { onSlotCtaClick(stage.cta.kind) },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) { Text(text = stage.cta.label) }
+                } else {
+                    OutlinedButton(
+                        onClick = { onSlotCtaClick(stage.cta.kind) },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) { Text(text = stage.cta.label) }
+                }
+            }
         }
     }
 }
@@ -724,6 +805,77 @@ private fun TrackerScreenSelectedPreview() {
                         location = "Room 204, Innovation Block",
                         meetingUrl = null
                     )
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun TrackerScreenTestPassedPreview() {
+    InnogeeksTheme {
+        TrackerScreen(
+            state = TrackerState(
+                recruitmentStatus = RecruitmentStatus(
+                    paid = true,
+                    decision = Decision.PENDING,
+                    decisionNote = null,
+                    testResult = TestResult.PASSED,
+                    testSlot = TestSlot(
+                        booked = true,
+                        startTime = "2026-08-15T10:00:00Z",
+                        endTime = "2026-08-15T11:00:00Z"
+                    ),
+                    interview = Interview(assigned = false, startTime = null, endTime = null, location = null, meetingUrl = null)
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun TrackerScreenSwitchingOffPreview() {
+    InnogeeksTheme {
+        TrackerScreen(
+            state = TrackerState(
+                recruitmentStatus = RecruitmentStatus(
+                    paid = true,
+                    decision = Decision.PENDING,
+                    decisionNote = null,
+                    testSlot = TestSlot(
+                        booked = true,
+                        startTime = "2026-08-15T10:00:00Z",
+                        endTime = "2026-08-15T11:00:00Z",
+                        switchingEnabled = false
+                    ),
+                    interview = Interview(assigned = false, startTime = null, endTime = null, location = null, meetingUrl = null)
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun TrackerScreenTestFailedPreview() {
+    InnogeeksTheme {
+        TrackerScreen(
+            state = TrackerState(
+                recruitmentStatus = RecruitmentStatus(
+                    paid = true,
+                    decision = Decision.PENDING,
+                    decisionNote = null,
+                    testResult = TestResult.FAILED,
+                    testSlot = TestSlot(booked = true, startTime = "2026-08-15T10:00:00Z", endTime = "2026-08-15T11:00:00Z"),
+                    interview = Interview(assigned = false, startTime = null, endTime = null, location = null, meetingUrl = null)
                 )
             ),
             hazeState = HazeState(),

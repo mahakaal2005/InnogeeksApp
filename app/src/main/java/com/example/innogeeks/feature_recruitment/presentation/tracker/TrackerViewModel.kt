@@ -29,6 +29,12 @@ class TrackerViewModel(
     fun onAction(action: TrackerAction) {
         when (action) {
             TrackerAction.OnRetryClick -> loadRecruitmentStatus()
+            TrackerAction.OnSlotsChanged -> loadRecruitmentStatus(showLoading = false)
+            is TrackerAction.OnPickSlotClick -> {
+                viewModelScope.launch {
+                    _events.send(TrackerEvent.NavigateToSlotPicker(action.kind))
+                }
+            }
             TrackerAction.OnBrowseResourcesClick -> {
                 viewModelScope.launch {
                     _events.send(TrackerEvent.NavigateToResources)
@@ -37,15 +43,15 @@ class TrackerViewModel(
         }
     }
 
-    private fun loadRecruitmentStatus() {
+    private fun loadRecruitmentStatus(showLoading: Boolean = true) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            if (showLoading) _state.update { it.copy(isLoading = true, error = null) }
             when (val result = getRecruitmentStatusUseCase()) {
                 is Result.Success -> _state.update {
-                    it.copy(isLoading = false, recruitmentStatus = result.data)
+                    it.copy(isLoading = false, error = null, recruitmentStatus = result.data)
                 }
-                is Result.Error -> _state.update {
-                    it.copy(isLoading = false, error = result.error.toUiText())
+                is Result.Error -> if (showLoading) {
+                    _state.update { it.copy(isLoading = false, error = result.error.toUiText()) }
                 }
             }
         }
