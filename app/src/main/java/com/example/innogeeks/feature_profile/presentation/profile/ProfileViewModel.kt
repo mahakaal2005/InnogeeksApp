@@ -3,21 +3,25 @@ package com.example.innogeeks.feature_profile.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.innogeeks.core.domain.session.Session
+import com.example.innogeeks.core.domain.session.SessionRevoker
 import com.example.innogeeks.core.domain.session.SessionRepository
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.mapper.toUiText
 import com.example.innogeeks.feature_profile.domain.use_case.GetProfileUseCase
 import com.example.innogeeks.feature_profile.domain.use_case.RequestAccountDeletionUseCase
 import com.example.innogeeks.feature_profile.domain.use_case.UpdateProfileUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class ProfileViewModel(
     private val sessionRepository: SessionRepository,
+    private val sessionRevoker: SessionRevoker,
     private val getProfileUseCase: GetProfileUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,
     private val requestAccountDeletionUseCase: RequestAccountDeletionUseCase
@@ -63,7 +67,16 @@ class ProfileViewModel(
 
             ProfileAction.OnLogOutConfirmed -> viewModelScope.launch {
                 _state.update { it.copy(isLogOutDialogVisible = false, expandedSection = null) }
-                sessionRepository.signOut()
+                // Revoke first (needs the token), but sign out locally whatever happens.
+                try {
+                    withTimeoutOrNull(LOGOUT_REVOKE_TIMEOUT_MS) { sessionRevoker.revokeRemoteSession() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Ignored: the token still expires on its own.
+                } finally {
+                    sessionRepository.signOut()
+                }
             }
 
             ProfileAction.OnRetryClick -> loadProfile()
@@ -157,5 +170,9 @@ class ProfileViewModel(
                 }
             }
         }
+    }
+
+    private companion object {
+        const val LOGOUT_REVOKE_TIMEOUT_MS = 5_000L
     }
 }

@@ -73,11 +73,7 @@ class DefaultAuthFlowRepository(
     }
 
     override suspend fun logout(): EmptyResult<AuthError> {
-        val result = remote.logout()
-        if (result is Result.Success) {
-            sessionRepository.signOut()
-        }
-        return result
+        return remote.logout()
     }
 
     // Store the token before refreshing role/domain, because Ktor loads the bearer token once and would otherwise send the first /me call without it.
