@@ -7,8 +7,6 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.passwordreset.
 import com.example.innogeeks.feature_onboarding.presentation.auth.passwordreset.PasswordResetVerifyCodeViewModel
 import com.example.innogeeks.feature_onboarding.presentation.auth.setpassword.SetPasswordViewModel
 import com.example.innogeeks.feature_onboarding.presentation.auth.verifycode.VerifyCodeViewModel
-import com.example.innogeeks.feature_onboarding.presentation.login.LoginViewModel
-import com.example.innogeeks.feature_onboarding.presentation.signup.SignUpViewModel
 import com.example.innogeeks.feature_onboarding.presentation.splash.SplashViewModel
 import com.example.innogeeks.feature_onboarding.presentation.intro.IntroViewModel
 import org.koin.core.module.dsl.viewModel
@@ -18,8 +16,6 @@ import org.koin.dsl.module
 val onboardingPresentationModule = module {
     viewModelOf(::SplashViewModel)
     viewModelOf(::IntroViewModel)
-    viewModelOf(::LoginViewModel)
-    viewModelOf(::SignUpViewModel)
 
     // Auth flow. The three later screens carry the college email (and setup token) forward,
     // so they take those as runtime parameters instead of resolving them from the graph.
