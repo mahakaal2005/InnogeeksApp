@@ -100,9 +100,7 @@ private fun TickerRow(keywords: List<String>) {
                 chip.pastCenter = isPastCenter
                 chip.ticked = isPastCenter
             }
-            // Floor the wrap period to ensure the chip reappears fully off-screen left.
-            // A chip wraps when x > stripWidth + 10f. After wrap, its right edge must be <= 0.
-            // new_x = x - contentWidth <= -chip.width  =>  contentWidth >= x + chip.width.
+            // Floor the wrap period so a wrapped chip reappears fully off-screen left (contentWidth >= x + chip.width).
             val maxChipWidth = chips.maxOfOrNull { it.width } ?: 0f
             contentWidth = maxOf(cursor - start, stripWidth + maxChipWidth + 25f)
             laidOut = true
@@ -124,10 +122,7 @@ private fun TickerRow(keywords: List<String>) {
                         chip.x -= contentWidth
                         chip.wrapCount++
                     }
-                    // Tick once on crossing the centre line and stay ticked until the chip
-                    // actually wraps back to before the line — driven by position, not the wrap
-                    // event itself, so a chip that's still past centre right after wrapping
-                    // keeps its state instead of replaying the glow.
+                    // Tick on crossing the centre line and stay ticked until the chip wraps back before it, driven by position rather than the wrap event.
                     val centre = chip.x + chip.width / 2f
                     val isPastCenter = centre >= stripWidth / 2f
                     if (isPastCenter != chip.pastCenter) {

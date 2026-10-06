@@ -7,7 +7,7 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthApiError
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthError
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SubmitLoginUseCase
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class PasswordLoginViewModel(
     private val collegeEmail: String,
-    private val authFlowRepository: AuthFlowRepository
+    private val submitLoginUseCase: SubmitLoginUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PasswordLoginState(collegeEmail = collegeEmail))
@@ -59,7 +59,7 @@ class PasswordLoginViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.login(collegeEmail, state.value.password)
+            val result = submitLoginUseCase(collegeEmail, state.value.password)
             _state.update { it.copy(isSubmitting = false) }
 
             when (result) {

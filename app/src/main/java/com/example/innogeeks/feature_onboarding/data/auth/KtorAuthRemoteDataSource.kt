@@ -14,7 +14,7 @@ import io.ktor.client.HttpClient
 
 // The real contract implementation. Written now but NOT bound in Koin — no host exists yet.
 // Swapping it in is one line in OnboardingDataModule.kt.
-class KtorAuthDataSource(private val httpClient: HttpClient) : AuthRemoteDataSource {
+class KtorAuthRemoteDataSource(private val httpClient: HttpClient) : AuthRemoteDataSource {
 
     override suspend fun checkEmail(collegeEmail: String): Result<NextStep, AuthError> =
         httpClient.postEnveloped<EmailGateRequest, EmailGateResponse>(

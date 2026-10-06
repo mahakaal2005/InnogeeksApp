@@ -53,6 +53,7 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
 
 
 // Root = smart half: pulls the ViewModel from Koin, observes the one-shot routing event.
@@ -87,7 +88,7 @@ fun SplashScreen(
     var started by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { started = true }
 
-    // ---- Stage 1: SPIN-UP. The logo rotates in (-180 -> 0), scales up (0 -> 1) and settles. ----
+    // Stage 1: SPIN-UP. The logo rotates in (-180 -> 0), scales up (0 -> 1) and settles.
     val logoScale by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
@@ -99,14 +100,14 @@ fun SplashScreen(
         label = "logoSpin"
     )
 
-    // ---- Stage 2: PULSE. A cyan ring expands + fades outward once, right after the logo lands. ----
+    // Stage 2: PULSE. A cyan ring expands + fades outward once, right after the logo lands.
     val pulseProgress by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 1200, delayMillis = 900, easing = LinearOutSlowInEasing),
         label = "pulseProgress"
     )
 
-    // ---- AMBIENT: continuous, subtle life once everything has arrived. ----
+    // AMBIENT: continuous, subtle life once everything has arrived.
     val ambient = rememberInfiniteTransition(label = "ambient")
     // Logo "breathes": a gentle float up/down.
     val breathe by ambient.animateFloat(
@@ -174,7 +175,7 @@ fun SplashScreen(
                 // The logo itself: spins + scales in (stage 1), then breathes (ambient).
                 Image(
                     painter = painterResource(R.drawable.app_logo),
-                    contentDescription = "Innogeeks logo",
+                    contentDescription = stringResource(R.string.common_innogeeks_logo),
                     modifier = Modifier
                         .size(96.dp)
                         .graphicsLayer {
@@ -222,7 +223,7 @@ fun SplashScreen(
 
             // Stage 3 — Identity: motto last, the phrase the club is known by.
             Text(
-                text = "We Learn, We Teach, We Conquer",
+                text = stringResource(R.string.splash_we_learn_we_teach_we),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
@@ -232,7 +233,7 @@ fun SplashScreen(
 
         // Stage 4 — Anchor: footer caption settles in last, pinned to the screen bottom.
         Text(
-            text = "KIET Deemed To Be University",
+            text = stringResource(R.string.splash_kiet_deemed_to_be_university),
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.5f),
             modifier = Modifier

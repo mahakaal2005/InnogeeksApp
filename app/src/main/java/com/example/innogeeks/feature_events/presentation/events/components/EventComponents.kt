@@ -54,6 +54,7 @@ import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
 
 // Diagonal-hatch placeholder for the real event image/logo, which no content
 // endpoint provides yet (display-only screen, see APP_API_GAPS_RESOLVED.md §6).
@@ -88,7 +89,7 @@ fun EventImagePlaceholder(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "event image / logo",
+            text = stringResource(R.string.events_event_image_logo),
             style = MaterialTheme.typography.labelSmall,
             color = scheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
@@ -159,7 +160,7 @@ fun ZoomableImageDialog(imageRes: Int, onDismiss: () -> Unit) {
                     .statusBarsPadding()
                     .padding(12.dp)
             ) {
-                Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(R.string.events_close), tint = Color.White)
             }
         }
     }
@@ -182,7 +183,7 @@ private fun LearnMoreButton(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Learn more",
+            text = stringResource(R.string.events_learn_more),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = scheme.onSurface
@@ -280,7 +281,7 @@ fun EventCard(
 
         if (attendees > 0) {
             Text(
-                text = "$attendees attendees",
+                text = stringResource(R.string.events_attendees, attendees),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = scheme.onSurfaceVariant

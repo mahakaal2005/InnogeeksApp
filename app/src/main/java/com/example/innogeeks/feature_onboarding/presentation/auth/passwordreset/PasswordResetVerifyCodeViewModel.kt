@@ -6,7 +6,8 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthApiError
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthError
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SendPasswordResetCodeUseCase
+import com.example.innogeeks.feature_onboarding.domain.use_case.SubmitPasswordResetCodeUseCase
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,10 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import edu.kiet.innogeeks.R
 
 class PasswordResetVerifyCodeViewModel(
     private val collegeEmail: String,
-    private val authFlowRepository: AuthFlowRepository
+    private val sendPasswordResetCodeUseCase: SendPasswordResetCodeUseCase,
+    private val submitPasswordResetCodeUseCase: SubmitPasswordResetCodeUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PasswordResetVerifyCodeState(collegeEmail = collegeEmail))
@@ -50,7 +53,7 @@ class PasswordResetVerifyCodeViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(canResend = false, formError = null, codeError = null) }
-            val result = authFlowRepository.requestPasswordResetCode(collegeEmail)
+            val result = sendPasswordResetCodeUseCase(collegeEmail)
             _state.update { it.copy(canResend = true) }
 
             when (result) {
@@ -73,7 +76,7 @@ class PasswordResetVerifyCodeViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.verifyResetCode(collegeEmail, state.value.code)
+            val result = submitPasswordResetCodeUseCase(collegeEmail, state.value.code)
             _state.update { it.copy(isSubmitting = false) }
 
             when (result) {
@@ -115,7 +118,7 @@ class PasswordResetVerifyCodeViewModel(
         }
     }
 
-    private fun enterFullCodeText() = UiText.DynamicString("Enter all $CODE_LENGTH digits.")
+    private fun enterFullCodeText() = UiText.StringResource(R.string.auth_enter_all_digits, arrayOf(CODE_LENGTH))
 
     private companion object {
         const val CODE_LENGTH = 6

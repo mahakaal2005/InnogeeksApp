@@ -4,9 +4,7 @@ import edu.kiet.innogeeks.R
 import com.example.innogeeks.core.domain.error.DataError
 import com.example.innogeeks.core.presentation.UiText
 
-// Maps a DataError to a user-facing UiText ticket. Lives in presentation (not domain)
-// because it touches R.string — turning an error into DISPLAY text is a presentation
-// concern; the DataError type itself stays pure in domain.
+// Maps a DataError to display text; it lives in presentation because it touches R.string.
 fun DataError.toUiText() : UiText {
     return when(this){
         DataError.Network.NO_INTERNET -> UiText.StringResource(R.string.error_no_internet)
@@ -18,10 +16,7 @@ fun DataError.toUiText() : UiText {
         DataError.Network.UNAUTHORIZED -> UiText.StringResource(R.string.error_unauthorized)
         DataError.Network.FORBIDDEN -> UiText.StringResource(R.string.error_app_access_denied)
         DataError.Local.DISK_FULL -> UiText.StringResource(R.string.error_disk_full)
-        // Only the cases worth distinguishing to a user get their own message; the
-        // rest (BAD_REQUEST, CONFLICT, Local.NOT_FOUND, UNKNOWN...) funnel into a
-        // friendly generic. Tradeoff: `else` means adding a new DataError won't
-        // trigger a compiler warning here — it silently becomes "unknown".
+        // Only the cases worth distinguishing get their own message and the rest fall into a generic one, so a new DataError silently becomes unknown.
         else -> UiText.StringResource(R.string.error_unknown)
     }
 }

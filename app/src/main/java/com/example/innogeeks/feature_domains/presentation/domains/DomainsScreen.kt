@@ -52,9 +52,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.toRoute
-import com.example.innogeeks.feature_domains.domain.model.Domain
-import com.example.innogeeks.feature_domains.domain.model.DomainMember
-import com.example.innogeeks.feature_domains.domain.model.DomainMemberRole
+import com.example.innogeeks.core.domain.model.Domain
+import com.example.innogeeks.core.domain.model.DomainMember
+import com.example.innogeeks.core.domain.model.DomainMemberRole
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import com.example.innogeeks.ui.theme.displayFontFamily
@@ -65,10 +65,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.innogeeks.core.presentation.UiText
+import androidx.compose.ui.res.stringResource
 
-// Nested NavHost scoped to just this tab's content area — MainScaffold's bottom nav
-// lives outside this Box, so the list/detail pair slide underneath it. Bottom-bar
-// visibility itself is reported up via onBottomBarVisibilityChanged (see MainScaffold).
+// Nested NavHost scoped to this tab; the bottom bar visibility is reported up via onBottomBarVisibilityChanged.
 @Composable
 fun DomainsRoot(
     hazeState: HazeState,
@@ -130,14 +130,12 @@ fun DomainsScreen(
 
         if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = scheme.error)
+                Text(text = state.error.asString(), color = scheme.error)
             }
             return@Box
         }
 
-        // Fixed (non-scrolling) grid whose rows share the leftover height equally, so the
-        // domain cards always fill the screen edge-to-edge with no dead space below.
-        // Rows follow a 2/1/2 pattern rather than a plain 2-column wrap.
+        // A fixed non-scrolling grid whose rows share the leftover height, in a 2/1/2 pattern.
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -147,13 +145,13 @@ fun DomainsScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Domains",
+                    text = stringResource(R.string.common_domains),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
                 )
                 Text(
-                    text = "Tap any domain to see its full picture — team, stack, and wins.",
+                    text = stringResource(R.string.domains_tap_any_domain_to_see),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 10.dp)
@@ -277,10 +275,7 @@ private fun domainIconRes(domainId: String): Int = when (domainId) {
     else -> R.drawable.ic_domain_iot
 }
 
-// Animated ambient-gradient background behind the domain icon: one deep wash blob
-// anchors the composition, a mid-tone blob adds body, and a small bright blob acts
-// as a highlight accent — normal alpha blending (not additive) so overlaps deepen
-// in color instead of blowing out to a white hotspot.
+// Ambient gradient behind the domain icon, using normal alpha blending so overlaps deepen instead of blowing out to white.
 private data class BlobSpec(
     val color: Color,
     val peakAlpha: Float,
@@ -304,10 +299,7 @@ private class BouncingBlob(pos: Offset, var vel: Offset, val rng: Random) {
     var pos by mutableStateOf(pos)
 }
 
-// Each blob wanders in a straight line inside its rectangular bounds (orbitCenterOffset ±
-// orbitReachScale, same footprint the old orbit used) and reflects its velocity off the walls
-// on contact, with a small random turn added at each bounce so the path never repeats in an
-// obvious cycle — endless motion, no restart point, so no discontinuity is possible.
+// Each blob drifts in a straight line and bounces off the walls with a small random turn, so the motion never restarts.
 @Composable
 private fun BlobBackground(seed: Int, modifier: Modifier = Modifier) {
     var containerSize by remember(seed) { mutableStateOf(IntSize.Zero) }
@@ -479,7 +471,7 @@ private fun DomainsScreenLoadingPreview() {
 private fun DomainsScreenErrorPreview() {
     InnogeeksTheme {
         DomainsScreen(
-            state = DomainsState(isLoading = false, error = "Failed to load domains."),
+            state = DomainsState(isLoading = false, error = UiText.DynamicString("Failed to load domains.")),
             hazeState = HazeState(),
             onDomainClick = {}
         )

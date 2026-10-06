@@ -4,9 +4,7 @@ import edu.kiet.innogeeks.R
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidationError
 
-// Dresses an onboarding validation error for display (R.string). Lives in feature
-// presentation, not core: AuthValidationError is onboarding-only, so its mapper stays here.
-// enum => match by VALUE (no `is`), and all 4 cases are covered so no `else` needed.
+// Maps an onboarding validation error to display text; it stays in this feature because the error is onboarding-only.
 fun AuthValidationError.toUiText() : UiText{
     return when(this){
         AuthValidationError.EMPTY_NAME -> UiText.StringResource(R.string.error_empty_name)

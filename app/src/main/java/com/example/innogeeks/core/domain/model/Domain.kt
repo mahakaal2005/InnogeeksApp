@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_domains.domain.model
+package com.example.innogeeks.core.domain.model
 
 // COORDINATOR = 2nd-years running the domain day-to-day. TEAM = 3rd-years who make up the rest of it.
 enum class DomainMemberRole {

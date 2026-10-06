@@ -9,8 +9,8 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 // Stands in for the backend until a host exists. Mirrors the contract's shapes and error
-// codes exactly so swapping in KtorAuthDataSource changes nothing above the data layer.
-class FakeAuthDataSource : AuthRemoteDataSource {
+// codes exactly so swapping in KtorAuthRemoteDataSource changes nothing above the data layer.
+class FakeAuthRemoteDataSource : AuthRemoteDataSource {
 
     private data class Account(
         val eligible: Boolean,

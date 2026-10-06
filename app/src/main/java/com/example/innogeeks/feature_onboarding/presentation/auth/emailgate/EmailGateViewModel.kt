@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import edu.kiet.innogeeks.R
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.GetNextAuthStepUseCase
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidator
 import com.example.innogeeks.feature_onboarding.domain.auth.NextStep
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class EmailGateViewModel(
-    private val authFlowRepository: AuthFlowRepository,
+    private val getNextAuthStepUseCase: GetNextAuthStepUseCase,
     private val authValidator: AuthValidator
 ) : ViewModel() {
 
@@ -53,7 +53,7 @@ class EmailGateViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.checkEmail(email)
+            val result = getNextAuthStepUseCase(email)
             _state.update { it.copy(isSubmitting = false) }
 
             when (result) {

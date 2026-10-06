@@ -6,7 +6,8 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthApiError
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthError
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SendVerificationCodeUseCase
+import com.example.innogeeks.feature_onboarding.domain.use_case.SubmitVerificationCodeUseCase
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -16,10 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import edu.kiet.innogeeks.R
 
 class VerifyCodeViewModel(
     private val collegeEmail: String,
-    private val authFlowRepository: AuthFlowRepository
+    private val sendVerificationCodeUseCase: SendVerificationCodeUseCase,
+    private val submitVerificationCodeUseCase: SubmitVerificationCodeUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(VerifyCodeState(collegeEmail = collegeEmail))
@@ -56,7 +59,7 @@ class VerifyCodeViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isRequestingCode = true, formError = null, codeError = null) }
-            val result = authFlowRepository.requestVerificationCode(collegeEmail)
+            val result = sendVerificationCodeUseCase(collegeEmail)
             _state.update { it.copy(isRequestingCode = false) }
 
             when (result) {
@@ -80,7 +83,7 @@ class VerifyCodeViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.verifyCode(collegeEmail, state.value.code)
+            val result = submitVerificationCodeUseCase(collegeEmail, state.value.code)
             _state.update { it.copy(isSubmitting = false) }
 
             when (result) {
@@ -128,7 +131,7 @@ class VerifyCodeViewModel(
     }
 
     private fun enterFullCodeText() =
-        UiText.DynamicString("Enter all ${VerifyCodeState.CODE_LENGTH} digits.")
+        UiText.StringResource(R.string.auth_enter_all_digits, arrayOf(VerifyCodeState.CODE_LENGTH))
 
     private companion object {
         const val RESEND_SECONDS = 60

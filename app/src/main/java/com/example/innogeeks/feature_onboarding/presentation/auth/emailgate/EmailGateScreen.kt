@@ -30,6 +30,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthPrimaryBut
 import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun EmailGateRoot(
@@ -58,13 +59,13 @@ fun EmailGateScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Log in",
-        subtitle = "Use the college email you registered with. Accounts are created by the Innogeeks team after offline registration.",
+        title = stringResource(R.string.common_log_in),
+        subtitle = stringResource(R.string.auth_email_gate_use_the_college_email_you),
         modifier = modifier,
         footer = {
             TextButton(onClick = { onAction(EmailGateAction.OnBackClick) }) {
                 Text(
-                    text = "Continue browsing as guest",
+                    text = stringResource(R.string.auth_email_gate_continue_browsing_as_guest),
                     color = Color.White.copy(alpha = 0.7f)
                 )
             }
@@ -73,7 +74,7 @@ fun EmailGateScreen(
         OutlinedTextField(
             value = state.email,
             onValueChange = { onAction(EmailGateAction.OnEmailChange(it)) },
-            label = { Text("College email") },
+            label = { Text(stringResource(R.string.auth_college_email)) },
             singleLine = true,
             enabled = !state.isSubmitting,
             isError = state.emailError != null,
@@ -101,7 +102,7 @@ fun EmailGateScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Continue",
+            text = stringResource(R.string.auth_email_gate_continue),
             onClick = { onAction(EmailGateAction.OnContinueClick) },
             isSubmitting = state.isSubmitting
         )

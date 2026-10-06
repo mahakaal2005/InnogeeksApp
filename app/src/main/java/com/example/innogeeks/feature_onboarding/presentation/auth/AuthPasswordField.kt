@@ -18,6 +18,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.glassFieldColors
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Shared by set-password and password-login so the eye toggle and glass styling live once.
 @Composable
@@ -55,7 +57,7 @@ fun AuthPasswordField(
             IconButton(onClick = onToggleVisibility) {
                 Icon(
                     imageVector = if (isVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                    contentDescription = if (isVisible) "Hide password" else "Show password",
+                    contentDescription = stringResource(if (isVisible) R.string.auth_hide_password else R.string.auth_show_password),
                     tint = Color.White.copy(alpha = 0.7f)
                 )
             }

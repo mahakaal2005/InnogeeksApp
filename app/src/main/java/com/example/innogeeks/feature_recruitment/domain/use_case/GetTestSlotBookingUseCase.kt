@@ -5,9 +5,7 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.feature_recruitment.domain.model.TestSlotBooking
 import com.example.innogeeks.feature_recruitment.domain.repository.RecruitmentRepository
 
-// Not called anywhere yet — TrackerScreen currently reads the lighter summary nested in
-// GetRecruitmentStatusUseCase instead. Wire this up if the tracker ever needs the slot id
-// or bookedAt timestamp this dedicated endpoint carries.
+// Not called yet because the Tracker reads the lighter summary in GetRecruitmentStatusUseCase.
 class GetTestSlotBookingUseCase(
     private val recruitmentRepository: RecruitmentRepository
 ) {

@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.domain.model.UserDomain
 import com.example.innogeeks.core.domain.model.UserRole
 import com.example.innogeeks.core.domain.session.Session
@@ -52,8 +52,9 @@ import com.example.innogeeks.feature_profile.presentation.profile.components.Pro
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 @Composable
 fun ProfileRoot(
@@ -63,11 +64,9 @@ fun ProfileRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                ProfileEvent.NavigateToAuth -> onNavigateToAuth()
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            ProfileEvent.NavigateToAuth -> onNavigateToAuth()
         }
     }
 
@@ -93,7 +92,7 @@ fun ProfileScreen(
         ) {
             item {
                 Text(
-                    text = "Profile",
+                    text = stringResource(R.string.common_profile),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
@@ -136,9 +135,7 @@ fun ProfileScreen(
     }
 }
 
-// Identity -> action -> info. The two "About Innogeeks" facts collapse into accordions
-// (same ExpandableRow pattern the registered profile below already uses) instead of dumping
-// full paragraphs inline, so the guest state doesn't read as a different, text-heavier screen.
+// Identity, then action, then info, with the About facts as accordions so the guest screen stays light.
 private fun LazyListScope.guestProfile(
     expandedSection: ProfileSection?,
     hazeState: HazeState,
@@ -147,9 +144,9 @@ private fun LazyListScope.guestProfile(
     item {
         ProfileHero(
             initials = "?",
-            name = "Guest",
-            subtitle = "Log in to unlock your dashboard, tracker and domain access.",
-            roleChip = "Not signed in",
+            name = stringResource(R.string.profile_guest),
+            subtitle = stringResource(R.string.profile_guest_subtitle),
+            roleChip = stringResource(R.string.profile_not_signed_in),
             filled = false,
             modifier = Modifier.padding(vertical = 6.dp)
         )
@@ -157,7 +154,7 @@ private fun LazyListScope.guestProfile(
 
     item {
         ProfileButton(
-            text = "Log In",
+            text = stringResource(R.string.profile_log_in),
             isPrimary = true,
             onClick = { onAction(ProfileAction.OnLoginClick) },
             hazeState = hazeState
@@ -167,7 +164,7 @@ private fun LazyListScope.guestProfile(
     // A caption, not a card — it shouldn't compete with the primary CTA above it.
     item {
         Text(
-            text = "Already registered? We've emailed your login credentials to your inbox.",
+            text = stringResource(R.string.profile_guest_already_registered),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -175,12 +172,12 @@ private fun LazyListScope.guestProfile(
         )
     }
 
-    item { SectionLabel(text = "About Innogeeks", modifier = Modifier.padding(top = 10.dp)) }
+    item { SectionLabel(text = stringResource(R.string.profile_about_innogeeks), modifier = Modifier.padding(top = 10.dp)) }
 
     item {
         ExpandableRow(
-            title = "Student tech community",
-            subtitle = "Hackathons, workshops & open source at KIET",
+            title = stringResource(R.string.profile_student_tech_community),
+            subtitle = stringResource(R.string.profile_about_card_subtitle),
             isExpanded = expandedSection == ProfileSection.ABOUT,
             onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.ABOUT)) },
             hazeState = hazeState,
@@ -189,8 +186,7 @@ private fun LazyListScope.guestProfile(
             }
         ) {
             Text(
-                text = "We build, break and ship things together — hackathons, workshops, " +
-                    "research projects and open source, run entirely by students.",
+                text = stringResource(R.string.profile_about_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -199,8 +195,8 @@ private fun LazyListScope.guestProfile(
 
     item {
         ExpandableRow(
-            title = "Domains & how to join",
-            subtitle = "5 domains · register → test → interview",
+            title = stringResource(R.string.profile_domains_how_to_join),
+            subtitle = stringResource(R.string.profile_join_card_subtitle),
             isExpanded = expandedSection == ProfileSection.JOIN,
             onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.JOIN)) },
             hazeState = hazeState,
@@ -210,12 +206,18 @@ private fun LazyListScope.guestProfile(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 DomainChipRow(
-                    domains = listOf("Web Dev", "App Dev", "Machine Learning", "AR / VR", "IoT")
+                    domains = listOf(
+                        stringResource(R.string.domain_web_dev),
+                        stringResource(R.string.domain_app_dev),
+                        stringResource(R.string.domain_machine_learning),
+                        stringResource(R.string.domain_ar_vr),
+                        stringResource(R.string.domain_iot)
+                    )
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    JoinStep(number = 1, text = "Register during the offline recruitment drive.")
-                    JoinStep(number = 2, text = "Clear the aptitude test.")
-                    JoinStep(number = 3, text = "Clear the interview. Recruitment opens once a year.")
+                    JoinStep(number = 1, text = stringResource(R.string.profile_join_step_register))
+                    JoinStep(number = 2, text = stringResource(R.string.profile_join_step_test))
+                    JoinStep(number = 3, text = stringResource(R.string.profile_join_step_interview))
                 }
             }
         }
@@ -289,7 +291,7 @@ private fun LazyListScope.registeredProfile(
             initials = (profile?.fullName ?: session.collegeEmail).toInitials(),
             name = profile?.fullName ?: session.collegeEmail.substringBefore('@'),
             subtitle = session.collegeEmail,
-            roleChip = profile?.role?.replace('_', ' ') ?: "Registered",
+            roleChip = profile?.role?.replace('_', ' ') ?: stringResource(R.string.common_registered),
             modifier = Modifier.padding(vertical = 6.dp)
         )
     }
@@ -313,14 +315,14 @@ private fun LazyListScope.registeredProfile(
     state.profileError?.let { error ->
         item {
             InfoPanel(
-                title = "Couldn't load profile",
+                title = stringResource(R.string.profile_load_error_title),
                 body = error.asString(),
                 hazeState = hazeState
             )
         }
         item {
             ProfileButton(
-                text = "Retry",
+                text = stringResource(R.string.common_retry),
                 isPrimary = true,
                 onClick = { onAction(ProfileAction.OnRetryClick) },
                 hazeState = hazeState,
@@ -347,7 +349,7 @@ private fun LazyListScope.registeredProfile(
                 )
             } else {
                 ProfileButton(
-                    text = "Edit Profile",
+                    text = stringResource(R.string.profile_edit_profile),
                     isPrimary = false,
                     onClick = { onAction(ProfileAction.OnEditClick) },
                     hazeState = hazeState
@@ -357,11 +359,11 @@ private fun LazyListScope.registeredProfile(
 
         item {
             ExpandableRow(
-                title = "Contact & Club",
+                title = stringResource(R.string.profile_contact_club),
                 subtitle = listOfNotNull(
                     profile.phone,
                     profile.role.replace('_', ' ')
-                ).take(1).joinToString(" • ").ifEmpty { "Role: ${profile.role.replace('_', ' ')}" },
+                ).take(1).joinToString(" • ").ifEmpty { stringResource(R.string.profile_role_format, profile.role.replace('_', ' ')) },
                 isExpanded = state.expandedSection == ProfileSection.CLUB,
                 onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.CLUB)) },
                 hazeState = hazeState,
@@ -373,19 +375,19 @@ private fun LazyListScope.registeredProfile(
                     modifier = Modifier.padding(vertical = 6.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    profile.phone?.let { ProfileField(label = "Phone", value = it) }
-                    ProfileField(label = "Role", value = profile.role.replace('_', ' '))
+                    profile.phone?.let { ProfileField(label = stringResource(R.string.profile_phone), value = it) }
+                    ProfileField(label = stringResource(R.string.profile_role), value = profile.role.replace('_', ' '))
                 }
             }
         }
 
         item {
             ExpandableRow(
-                title = "Academic Details",
+                title = stringResource(R.string.profile_academic_details),
                 subtitle = listOfNotNull(
                     profile.batch,
-                    profile.year?.let { "Year $it" }
-                ).joinToString(" • ").ifEmpty { "Not provided" },
+                    profile.year?.let { stringResource(R.string.profile_year_format, it) }
+                ).joinToString(" • ").ifEmpty { stringResource(R.string.profile_not_provided) },
                 isExpanded = state.expandedSection == ProfileSection.ACADEMIC,
                 onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.ACADEMIC)) },
                 hazeState = hazeState,
@@ -395,18 +397,18 @@ private fun LazyListScope.registeredProfile(
                     modifier = Modifier.padding(vertical = 6.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    profile.batch?.let { ProfileField(label = "Batch", value = it) }
-                    profile.year?.let { ProfileField(label = "Year", value = it.toString()) }
+                    profile.batch?.let { ProfileField(label = stringResource(R.string.profile_batch), value = it) }
+                    profile.year?.let { ProfileField(label = stringResource(R.string.profile_year), value = it.toString()) }
                     if (profile.batch == null && profile.year == null) {
                         Text(
-                            text = "No academic details provided yet.",
+                            text = stringResource(R.string.profile_no_academic_details),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     // Batch/year come from your registration record — only the club admin can change them.
                     Text(
-                        text = "Managed by Innogeeks admin",
+                        text = stringResource(R.string.profile_managed_by_innogeeks_admin),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -417,8 +419,8 @@ private fun LazyListScope.registeredProfile(
 
     item {
         ExpandableRow(
-            title = "Account & Data",
-            subtitle = "Manage your account",
+            title = stringResource(R.string.profile_account_data),
+            subtitle = stringResource(R.string.profile_manage_your_account),
             isExpanded = state.expandedSection == ProfileSection.ACCOUNT,
             onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.ACCOUNT)) },
             hazeState = hazeState,
@@ -429,12 +431,12 @@ private fun LazyListScope.registeredProfile(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Deleting your account is permanent once the grace period ends.",
+                    text = stringResource(R.string.profile_delete_permanent_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Delete my account",
+                    text = stringResource(R.string.profile_delete_my_account),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error.copy(alpha = 0.85f),
                     modifier = Modifier.clickable(
@@ -447,7 +449,7 @@ private fun LazyListScope.registeredProfile(
 
     item {
         ProfileButton(
-            text = "Log Out",
+            text = stringResource(R.string.profile_log_out),
             isPrimary = false,
             onClick = { onAction(ProfileAction.OnLogOutClick) },
             hazeState = hazeState,
@@ -491,13 +493,13 @@ private fun LogOutDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Log out?",
+                text = stringResource(R.string.profile_log_out_dialog_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "You'll go back to browsing as a guest. You can log in again anytime.",
+                text = stringResource(R.string.profile_log_out_dialog_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -505,9 +507,9 @@ private fun LogOutDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss) { Text(text = "Cancel") }
+                TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.common_cancel)) }
                 TextButton(onClick = onConfirm) {
-                    Text(text = "Log Out", color = MaterialTheme.colorScheme.error)
+                    Text(text = stringResource(R.string.profile_log_out), color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -556,28 +558,25 @@ private fun DeleteAccountDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Delete your account?",
+                text = stringResource(R.string.profile_delete_your_account),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Your account will be scheduled for deletion. We'll process the " +
-                    "request and send you an update at your registered email once it's done. " +
-                    "Logging back in within 14 days cancels it — after that, your profile data " +
-                    "is permanently erased (recruitment records are kept in anonymized form).",
+                text = stringResource(R.string.profile_delete_dialog_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Questions? Write to innogeeks@kiet.edu.",
+                text = stringResource(R.string.profile_delete_questions),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             OutlinedTextField(
                 value = confirmationInput,
                 onValueChange = onConfirmationInputChange,
-                label = { Text("Type DELETE to confirm") },
+                label = { Text(stringResource(R.string.profile_type_delete_to_confirm)) },
                 singleLine = true,
                 enabled = !isRequesting,
                 colors = OutlinedTextFieldDefaults.colors(),
@@ -594,13 +593,13 @@ private fun DeleteAccountDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss, enabled = !isRequesting) { Text(text = "Cancel") }
+                TextButton(onClick = onDismiss, enabled = !isRequesting) { Text(text = stringResource(R.string.common_cancel)) }
                 TextButton(
                     onClick = onConfirm,
                     enabled = confirmationInput == "DELETE" && !isRequesting
                 ) {
                     Text(
-                        text = if (isRequesting) "Deleting…" else "Delete Account",
+                        text = stringResource(if (isRequesting) R.string.profile_deleting else R.string.profile_delete_account_button),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -612,7 +611,7 @@ private fun DeleteAccountDialog(
 @Composable
 private fun AwaitingDataRow(modifier: Modifier = Modifier) {
     Text(
-        text = "Awaiting profile data from the club.",
+        text = stringResource(R.string.profile_awaiting_data),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.padding(vertical = 6.dp)
@@ -745,7 +744,7 @@ private fun EditProfileCard(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = "Edit Profile",
+            text = stringResource(R.string.profile_edit_profile),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -754,7 +753,7 @@ private fun EditProfileCard(
         OutlinedTextField(
             value = fullName,
             onValueChange = onFullNameChange,
-            label = { Text("Full name") },
+            label = { Text(stringResource(R.string.profile_full_name)) },
             singleLine = true,
             enabled = !isSaving,
             colors = OutlinedTextFieldDefaults.colors(),
@@ -764,7 +763,7 @@ private fun EditProfileCard(
         OutlinedTextField(
             value = phone,
             onValueChange = onPhoneChange,
-            label = { Text("Phone") },
+            label = { Text(stringResource(R.string.profile_phone)) },
             singleLine = true,
             enabled = !isSaving,
             colors = OutlinedTextFieldDefaults.colors(),
@@ -781,13 +780,13 @@ private fun EditProfileCard(
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ProfileButton(
-                text = if (isSaving) "Saving…" else "Save",
+                text = stringResource(if (isSaving) R.string.profile_saving else R.string.profile_save),
                 isPrimary = true,
                 onClick = onSaveClick,
                 hazeState = hazeState
             )
             ProfileButton(
-                text = "Cancel",
+                text = stringResource(R.string.common_cancel),
                 isPrimary = false,
                 onClick = onCancelClick,
                 hazeState = hazeState

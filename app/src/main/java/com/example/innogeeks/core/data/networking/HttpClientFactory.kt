@@ -21,9 +21,7 @@ import kotlinx.serialization.json.Json
 // create() factory method — matches the skill's DI usage: single { HttpClientFactory.create(get()) }.
 object HttpClientFactory {
 
-    // The engine is INJECTED, not hardcoded — Ktor is engine-agnostic (OkHttp, CIO...).
-    // Real code passes OkHttp.create(); a test could pass a fake. Depend on the
-    // abstraction (HttpClientEngine), not the concrete engine.
+    // The engine is injected so tests can swap it; production passes OkHttp.create().
     fun create(
         engine: HttpClientEngine,
         sessionRepository: SessionRepository
@@ -41,14 +39,7 @@ object HttpClientFactory {
                 level = if (BuildConfig.DEBUG) LogLevel.HEADERS else LogLevel.NONE
             }
 
-            // Attaches the stored token as a Bearer header on every request. loadTokens() is
-            // called once and its result CACHED for this HttpClient's whole lifetime — if it's
-            // ever called before a token exists (e.g. the very first authenticated call, made
-            // right after login, can race the DataStore write), that null gets stuck forever
-            // and every later call fails with 401, even after the token is actually written.
-            // refreshTokens re-reads the same source on any 401, which both recovers from that
-            // race and covers a genuinely dead token — no real refresh endpoint is needed since
-            // this doesn't call the backend, it just re-checks local storage once.
+            // Attaches the stored token as a Bearer header; refreshTokens re-reads storage on 401 because loadTokens is cached and can capture a null token right after login.
             install(Auth) {
                 bearer {
                     loadTokens { sessionRepository.currentAccessToken()?.let { BearerTokens(accessToken = it, refreshToken = "") } }

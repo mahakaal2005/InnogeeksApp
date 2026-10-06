@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.innogeeks.core.presentation.UiText
+import edu.kiet.innogeeks.R
 
 class HomeViewModel(
     private val repository: HomeRepository
@@ -65,7 +67,7 @@ class HomeViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Failed to load home data. Please try again."
+                        error = UiText.StringResource(R.string.home_load_error)
                     )
                 }
             }

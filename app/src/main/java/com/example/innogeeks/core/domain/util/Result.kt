@@ -1,13 +1,9 @@
 package com.example.innogeeks.core.domain.util
 
-// Marker interface: a label with no methods. Any type that can be a "failure"
-// implements this (DataError, validation errors, etc.), letting Result constrain
-// its error slot to "some kind of Error" rather than allowing anything.
+// Marker for any type that can be the failure side of a Result.
 interface Error
 
-// A typed, two-outcome container: either Success(data) or Error(error).
-// sealed => Success and Error are the ONLY cases, so `when` is exhaustive (no else).
-// <out D, out E> => covariant: a Result<Dog, ..> is usable as a Result<Animal, ..>.
+// A typed two-outcome container, sealed so `when` over it is exhaustive, and covariant in both slots.
 sealed interface Result<out D, out E : Error> {
     // Success carries data; its error slot is Nothing (Kotlin's "impossible" type,
     // subtype of everything) — a success has no error and never could.

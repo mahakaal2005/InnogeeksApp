@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import dev.chrisbanes.haze.HazeState
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Shared search bar visual, used wherever a screen needs to search resources.
 @Composable
@@ -28,7 +30,7 @@ internal fun ResourceSearchBar(
     onQueryChange: (String) -> Unit,
     hazeState: HazeState,
     modifier: Modifier = Modifier,
-    placeholder: String = "Search resources…"
+    placeholder: String = stringResource(R.string.resources_search_placeholder)
 ) {
     val scheme = MaterialTheme.colorScheme
 

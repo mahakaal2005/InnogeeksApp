@@ -320,9 +320,7 @@ private fun buildRevealedCode(revealedChars: Int, cursorVisible: Boolean, cursor
         }
     }
 
-// One line of the scripted exchange, alternating between the two chatters. Kept short on
-// purpose — the phone is only ~70dp wide, so every line needs to read on a single line rather
-// than wrap. Cycled one at a time until the log fills the phone, then it clears and restarts.
+// One scripted chat line, kept short because the phone is only about 70dp wide.
 private data class ChatLine(val text: String, val isOutgoing: Boolean)
 
 private val chatScript = listOf(
@@ -341,9 +339,7 @@ private const val CHAT_TYPING_MS = 800L
 private const val CHAT_HOLD_MS = 1300L
 private const val CHAT_RESET_MS = 400L
 
-// A small glassmorphic phone, centered on the card, playing an infinite two-person chat: bubbles
-// land one at a time (with a typing indicator before each incoming one), scroll as the log fills,
-// then the whole log clears and the exchange starts over.
+// A small glassmorphic phone playing an endless two-person chat that clears and restarts when the log fills.
 @Composable
 private fun ChatAppSimulation(accent: Color, hazeState: HazeState, modifier: Modifier = Modifier) {
     val messages = remember { mutableStateListOf<ChatLine>() }
@@ -416,9 +412,7 @@ private fun ChatAppSimulation(accent: Color, hazeState: HazeState, modifier: Mod
             }
             Spacer(modifier = Modifier.height(3.dp))
 
-            // Bottom-anchored so, as messages keep landing, the oldest ones scroll off the top
-            // edge — a real chat filling up, not a static 3-line loop. The bottom padding is a
-            // small buffer so the newest bubble never sits flush against the hard clip edge.
+            // Bottom-anchored so old messages scroll off the top like a real chat, with a small padding buffer under the newest bubble.
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -470,9 +464,7 @@ private fun ChatAppSimulation(accent: Color, hazeState: HazeState, modifier: Mod
 // after its line "arrives," entering composition already IS the reveal moment.
 @Composable
 private fun ChatBubble(line: ChatLine, accent: Color, modifier: Modifier = Modifier) {
-    // Starts false so the very first frame after this bubble enters composition animates in,
-    // rather than snapping straight to scale = 1 (animateFloatAsState doesn't animate a value
-    // that's already at its target on the first frame).
+    // Starts false so the first frame animates in, because animateFloatAsState does not animate a value already at its target.
     var revealed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { revealed = true }
     val scale by animateFloatAsState(
@@ -495,9 +487,7 @@ private fun ChatBubble(line: ChatLine, accent: Color, modifier: Modifier = Modif
             modifier = Modifier
                 .graphicsLayer {
                     scaleX = scale; scaleY = scale
-                    // Anchor growth to the bubble's bottom edge, not its center — a bubble
-                    // landing right at the bottom of the (clipped) chat log must only grow
-                    // upward, never downward past its resting position.
+                    // Anchor growth to the bubble's bottom edge so a bubble at the log's bottom only grows upward.
                     transformOrigin = TransformOrigin(if (line.isOutgoing) 1f else 0f, 1f)
                 }
                 .clip(RoundedCornerShape(topStart = 7.dp, topEnd = 7.dp, bottomStart = if (line.isOutgoing) 7.dp else 2.dp, bottomEnd = if (line.isOutgoing) 2.dp else 7.dp))
@@ -544,10 +534,7 @@ private const val AR_PLACED_HOLD_MS = 2000f
 
 private enum class ArMode { SCANNING, PLACED }
 
-// A small glassmorphic phone (same shell as ChatAppSimulation) whose screen is an AR
-// furniture-placement app: a live "camera view" scans for a surface, then anchors a rotating
-// wireframe object, with a color-swatch + Place bar underneath — modeled on real AR apps like
-// IKEA Place and Houzz.
+// A small glassmorphic phone (same shell as ChatAppSimulation) running a mock AR furniture-placement app, modeled on IKEA Place and Houzz.
 @Composable
 private fun ArPhoneSimulation(accent: Color, hazeState: HazeState, modifier: Modifier = Modifier) {
     var mode by remember { mutableStateOf(ArMode.SCANNING) }

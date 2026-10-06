@@ -35,6 +35,7 @@ import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.AuthGlowBackground
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import dev.chrisbanes.haze.HazeState
+import androidx.compose.ui.res.stringResource
 
 // The shell all four auth screens share: glow backdrop, logo, heading, glass card.
 // Extracted so the four screens differ only in their fields, not their chrome.
@@ -66,7 +67,7 @@ fun AuthScaffold(
         ) {
             Image(
                 painter = painterResource(R.drawable.app_logo),
-                contentDescription = "Innogeeks logo",
+                contentDescription = stringResource(R.string.common_innogeeks_logo),
                 modifier = Modifier.size(72.dp)
             )
 

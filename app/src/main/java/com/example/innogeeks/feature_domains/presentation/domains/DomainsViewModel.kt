@@ -2,11 +2,13 @@ package com.example.innogeeks.feature_domains.presentation.domains
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.innogeeks.feature_domains.domain.DomainsRepository
+import com.example.innogeeks.core.domain.repository.DomainsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.innogeeks.core.presentation.UiText
+import edu.kiet.innogeeks.R
 
 class DomainsViewModel(
     private val repository: DomainsRepository
@@ -31,7 +33,7 @@ class DomainsViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = "Failed to load domains. Please try again."
+                            error = UiText.StringResource(R.string.domains_load_error)
                         )
                     }
                 }

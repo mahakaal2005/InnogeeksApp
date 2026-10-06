@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_home.presentation
+package com.example.innogeeks.shell
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
@@ -83,36 +83,38 @@ import edu.kiet.innogeeks.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import org.koin.compose.koinInject
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
 
 private data class BottomNavTab(
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
 )
 
 // Guest: 4 tabs (Home/Domains/Events/Profile)
 private val guestTabs = listOf(
-    BottomNavTab("Home", Icons.Filled.Home),
-    BottomNavTab("Domains", Icons.Filled.Category),
-    BottomNavTab("Events", Icons.Filled.CalendarMonth),
-    BottomNavTab("Profile", Icons.Filled.Person),
+    BottomNavTab(R.string.common_home, Icons.Filled.Home),
+    BottomNavTab(R.string.common_domains, Icons.Filled.Category),
+    BottomNavTab(R.string.common_events, Icons.Filled.CalendarMonth),
+    BottomNavTab(R.string.common_profile, Icons.Filled.Person),
 )
 
 // Registered (first-year): 5 tabs (Tracker/Domains/Resources/Events/Profile)
 private val registeredTabs = listOf(
-    BottomNavTab("Tracker", Icons.Filled.Timeline),
-    BottomNavTab("Domains", Icons.Filled.Category),
-    BottomNavTab("Resources", Icons.Filled.FolderOpen),
-    BottomNavTab("Events", Icons.Filled.CalendarMonth),
-    BottomNavTab("Profile", Icons.Filled.Person),
+    BottomNavTab(R.string.common_tracker, Icons.Filled.Timeline),
+    BottomNavTab(R.string.common_domains, Icons.Filled.Category),
+    BottomNavTab(R.string.common_resources, Icons.Filled.FolderOpen),
+    BottomNavTab(R.string.common_events, Icons.Filled.CalendarMonth),
+    BottomNavTab(R.string.common_profile, Icons.Filled.Person),
 )
 
 // REGISTERED + REJECTED: Tracker has nothing left to show; Resources becomes tab 0 as the one
 // thing the app still offers after a terminal decision (the fee was already paid).
 private val rejectedTabs = listOf(
-    BottomNavTab("Resources", Icons.Filled.FolderOpen),
-    BottomNavTab("Domains", Icons.Filled.Category),
-    BottomNavTab("Events", Icons.Filled.CalendarMonth),
-    BottomNavTab("Profile", Icons.Filled.Person),
+    BottomNavTab(R.string.common_resources, Icons.Filled.FolderOpen),
+    BottomNavTab(R.string.common_domains, Icons.Filled.Category),
+    BottomNavTab(R.string.common_events, Icons.Filled.CalendarMonth),
+    BottomNavTab(R.string.common_profile, Icons.Filled.Person),
 )
 
 // Single place role -> tab-set is decided. Phase 4's actual Member/Coordinator/Admin nav isn't
@@ -121,9 +123,7 @@ private fun UserRole.tabs(): List<BottomNavTab> = when (this) {
     UserRole.REGISTERED, UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> registeredTabs
 }
 
-// Guest / normal Authenticated / REJECTED all have different tab counts+content, and this
-// composable survives login/logout/decision changes in place (session just recomposes, nothing
-// navigates) — this key drives the reset-to-0 effect below.
+// This key drives the reset-to-0 effect below, since the composable survives login, logout and decision changes in place.
 private enum class TabMode { GUEST, AUTHENTICATED, REJECTED }
 
 @Composable
@@ -165,9 +165,7 @@ fun MainScaffold(
         else -> TabMode.AUTHENTICATED
     }
 
-    // Without this, selectedTab keeps its old index into the NEW tab list on a mode change,
-    // landing on the wrong tab or, if the new list is shorter, on an index the `when` below
-    // doesn't handle at all (blank screen).
+    // Without this reset, selectedTab keeps an index into the new tab list that may be wrong or out of range.
     var previousTabMode by rememberSaveable { mutableStateOf(tabMode) }
     LaunchedEffect(tabMode) {
         if (previousTabMode != tabMode) {
@@ -352,7 +350,7 @@ private fun InnogeeksBottomNav(
                         ) {
                             Icon(
                                 imageVector = tab.icon,
-                                contentDescription = tab.label,
+                                contentDescription = stringResource(tab.labelRes),
                                 tint = iconColor,
                                 modifier = Modifier
                                     .size(24.dp)
@@ -373,7 +371,7 @@ private fun InnogeeksBottomNav(
                                 ) + androidx.compose.animation.shrinkHorizontally(spring(stiffness = Spring.StiffnessMediumLow))
                             ) {
                                 Text(
-                                    text = tab.label,
+                                    text = stringResource(tab.labelRes),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.primary,
@@ -415,7 +413,7 @@ private fun PlaceholderScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Coming in Phase 2",
+                text = stringResource(R.string.shell_coming_in_phase_2),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -53,6 +53,8 @@ import dev.chrisbanes.haze.hazeEffect
 
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 
 @Composable
@@ -113,9 +115,7 @@ fun IntroScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Skip lives top-right, out of the way — pure liquid glass over plain text,
-            // NO blue overlay (that would read as tinted glassmorphism, not liquid glass).
-            // Hidden on the last page — Get Started already exits from there.
+            // Skip sits top-right as untinted liquid glass and is hidden on the last page, where Get Started exits.
             if (state.isLastPage) {
                 Spacer(Modifier.height(40.dp))
             } else {
@@ -125,7 +125,7 @@ fun IntroScreen(
                         .align(Alignment.End)
                         .liquidGlass(hazeState, cornerRadius = 20.dp)
                 ) {
-                    Text("Skip", color = Color.White.copy(alpha = 0.85f))
+                    Text(stringResource(R.string.intro_skip), color = Color.White.copy(alpha = 0.85f))
                 }
             }
 
@@ -170,7 +170,7 @@ fun IntroScreen(
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
-                    Text("Get Started", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.intro_get_started), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
@@ -184,7 +184,7 @@ fun IntroScreen(
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
-                    Text("Next", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.intro_next), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -213,7 +213,7 @@ private fun IntroGlassCard(page: IntroPage, hazeState: HazeState) {
         )
         Spacer(Modifier.height(28.dp))
         Text(
-            text = page.title,
+            text = stringResource(page.titleRes),
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White,
             fontWeight = FontWeight.Bold,
@@ -221,7 +221,7 @@ private fun IntroGlassCard(page: IntroPage, hazeState: HazeState) {
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            text = page.subtitle,
+            text = stringResource(page.subtitleRes),
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White.copy(alpha = 0.75f),
             textAlign = TextAlign.Center

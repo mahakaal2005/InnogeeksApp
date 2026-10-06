@@ -1,14 +1,12 @@
 package com.example.innogeeks.feature_domains.data
 
-import com.example.innogeeks.feature_domains.domain.DomainsRepository
-import com.example.innogeeks.feature_domains.domain.model.Domain
-import com.example.innogeeks.feature_domains.domain.model.DomainMember
-import com.example.innogeeks.feature_domains.domain.model.DomainMemberRole.COORDINATOR
-import com.example.innogeeks.feature_domains.domain.model.DomainMemberRole.TEAM
+import com.example.innogeeks.core.domain.repository.DomainsRepository
+import com.example.innogeeks.core.domain.model.Domain
+import com.example.innogeeks.core.domain.model.DomainMember
+import com.example.innogeeks.core.domain.model.DomainMemberRole.COORDINATOR
+import com.example.innogeeks.core.domain.model.DomainMemberRole.TEAM
 
-// Guest-mode data source. No domains endpoint exists yet — swap this for a Ktor-backed
-// implementation once /domains ships; DomainsRepository is the contract callers already code
-// against. Coordinators and team members below are the real 2026-27 lists.
+// Guest-mode data source until a /domains endpoint exists; DomainsRepository is the contract callers use.
 class InMemoryDomainsRepository : DomainsRepository {
 
     override suspend fun getDomains(): Result<List<Domain>> {

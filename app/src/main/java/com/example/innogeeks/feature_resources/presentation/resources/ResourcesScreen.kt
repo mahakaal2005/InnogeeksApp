@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +44,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.presentation.components.StatTile
 import com.example.innogeeks.core.presentation.components.liquidGlass
-import com.example.innogeeks.feature_domains.domain.model.Domain
+import com.example.innogeeks.core.domain.model.Domain
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import com.example.innogeeks.feature_resources.presentation.resources.components.domainAccent
@@ -56,8 +56,10 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import com.example.innogeeks.ui.theme.displayFontFamily
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
+import androidx.compose.ui.res.pluralStringResource
 
 // Nested NavHost scoped to this tab: domain picker -> per-domain feed -> resource detail.
 // MainScaffold's bottom nav lives outside this Box, so it stays put across all three screens.
@@ -70,11 +72,9 @@ fun ResourcesRoot(
     val navController = rememberNavController()
     val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                is ResourcesEvent.OpenUrl -> uriHandler.openUri(event.url)
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is ResourcesEvent.OpenUrl -> uriHandler.openUri(event.url)
         }
     }
 
@@ -141,7 +141,7 @@ fun ResourcesScreen(
 
         if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = scheme.error)
+                Text(text = state.error.asString(), color = scheme.error)
             }
             return@Box
         }
@@ -157,13 +157,13 @@ fun ResourcesScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Resources",
+                    text = stringResource(R.string.common_resources),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
                 )
                 Text(
-                    text = "Pick a domain — explore, learn, grow.",
+                    text = stringResource(R.string.resources_pick_a_domain_explore_learn),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 10.dp)
@@ -174,9 +174,9 @@ fun ResourcesScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatTile(value = state.domains.size, caption = "Domains", hazeState = hazeState, modifier = Modifier.weight(1f))
-                StatTile(value = state.resources.size, caption = "Resources", hazeState = hazeState, modifier = Modifier.weight(1f))
-                StatTile(value = typeCount, caption = "Types", hazeState = hazeState, modifier = Modifier.weight(1f))
+                StatTile(value = state.domains.size, caption = stringResource(R.string.common_domains), hazeState = hazeState, modifier = Modifier.weight(1f))
+                StatTile(value = state.resources.size, caption = stringResource(R.string.common_resources), hazeState = hazeState, modifier = Modifier.weight(1f))
+                StatTile(value = typeCount, caption = stringResource(R.string.resources_types), hazeState = hazeState, modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
@@ -295,7 +295,7 @@ private fun ResourceDomainCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "$resourceCount resource${if (resourceCount != 1) "s" else ""}",
+                    text = pluralStringResource(R.plurals.resources_count, resourceCount, resourceCount),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.3.sp,

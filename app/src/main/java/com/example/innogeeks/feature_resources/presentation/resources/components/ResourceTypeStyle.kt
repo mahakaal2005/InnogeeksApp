@@ -3,15 +3,20 @@ package com.example.innogeeks.feature_resources.presentation.resources.component
 import androidx.compose.ui.graphics.Color
 import edu.kiet.innogeeks.R
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 
 // One accent + label per resource type, shared by the browser feed, filter bar and detail screen.
-internal fun ResourceType.label(): String = when (this) {
-    ResourceType.LINK -> "Link"
-    ResourceType.PDF -> "PDF"
-    ResourceType.VIDEO -> "Video"
-    ResourceType.NOTES -> "Notes"
-    ResourceType.GITHUB -> "GitHub"
-}
+@Composable
+internal fun ResourceType.label(): String = stringResource(
+    when (this) {
+        ResourceType.LINK -> R.string.resource_type_link
+        ResourceType.PDF -> R.string.resource_type_pdf
+        ResourceType.VIDEO -> R.string.resource_type_video
+        ResourceType.NOTES -> R.string.resource_type_notes
+        ResourceType.GITHUB -> R.string.resource_type_github
+    }
+)
 
 internal fun ResourceType.accentColor(): Color = when (this) {
     ResourceType.LINK -> Color(0xFF6CD4F3)

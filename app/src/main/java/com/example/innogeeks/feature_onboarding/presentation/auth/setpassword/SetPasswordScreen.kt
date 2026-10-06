@@ -23,6 +23,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun SetPasswordRoot(
@@ -53,14 +54,14 @@ fun SetPasswordScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Create your password",
-        subtitle = "Choose a password for ${state.collegeEmail}. You'll use it to log in from now on.",
+        title = stringResource(R.string.auth_set_password_create_your_password),
+        subtitle = stringResource(R.string.auth_set_password_subtitle, state.collegeEmail),
         modifier = modifier
     ) {
         AuthPasswordField(
             value = state.password,
             onValueChange = { onAction(SetPasswordAction.OnPasswordChange(it)) },
-            label = "New password",
+            label = stringResource(R.string.auth_new_password),
             isVisible = state.isPasswordVisible,
             onToggleVisibility = { onAction(SetPasswordAction.OnTogglePasswordVisibility) },
             error = state.passwordError,
@@ -72,7 +73,7 @@ fun SetPasswordScreen(
         AuthPasswordField(
             value = state.confirmPassword,
             onValueChange = { onAction(SetPasswordAction.OnConfirmPasswordChange(it)) },
-            label = "Confirm password",
+            label = stringResource(R.string.auth_confirm_password),
             isVisible = state.isPasswordVisible,
             onToggleVisibility = { onAction(SetPasswordAction.OnTogglePasswordVisibility) },
             error = state.confirmPasswordError,
@@ -82,7 +83,7 @@ fun SetPasswordScreen(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "8 to 128 characters.",
+            text = stringResource(R.string.auth_password_length_hint),
             style = MaterialTheme.typography.bodySmall,
             color = Color.White.copy(alpha = 0.55f),
             textAlign = TextAlign.Start
@@ -95,7 +96,7 @@ fun SetPasswordScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Set password",
+            text = stringResource(R.string.auth_set_password_set_password),
             onClick = { onAction(SetPasswordAction.OnSubmitClick) },
             isSubmitting = state.isSubmitting
         )

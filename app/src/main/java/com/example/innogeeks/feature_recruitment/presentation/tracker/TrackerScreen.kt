@@ -60,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
@@ -75,7 +76,6 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
@@ -83,6 +83,10 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
+import androidx.annotation.StringRes
+import com.example.innogeeks.core.presentation.UiText
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // The slot picker opens as a bottom sheet over the journey, so the Tracker stays visible behind it.
 @Composable
@@ -93,11 +97,9 @@ fun TrackerRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                TrackerEvent.NavigateToResources -> onNavigateToResources()
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            TrackerEvent.NavigateToResources -> onNavigateToResources()
         }
     }
 
@@ -120,10 +122,7 @@ fun TrackerScreen(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    // A plain Column, not LazyColumn: this screen's content is a handful of fixed blocks, never
-    // a long list, and the journey below needs Modifier.weight(1f) to fill the remaining screen
-    // height (LazyColumn items can't do that — they size to content, leaving empty space below
-    // on taller phones, which is what the original stacked-box layout also did unnoticed).
+    // A plain Column, not LazyColumn, because the journey needs Modifier.weight(1f) to fill the remaining height.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -133,7 +132,7 @@ fun TrackerScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Recruitment Tracker",
+            text = stringResource(R.string.tracker_recruitment_tracker),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = scheme.onSurface
@@ -164,7 +163,7 @@ fun TrackerScreen(
                         textAlign = TextAlign.Center
                     )
                     Button(onClick = { onAction(TrackerAction.OnRetryClick) }) {
-                        Text(text = "Retry")
+                        Text(text = stringResource(R.string.common_retry))
                     }
                 }
             }
@@ -215,8 +214,8 @@ private data class StageSlot(
 )
 
 private data class JourneyStageUi(
-    val title: String,
-    val subtitle: String,
+    @StringRes val titleRes: Int,
+    val subtitle: UiText?,
     val state: StageState,
     val icon: ImageVector,
     val decision: Decision? = null,
@@ -226,24 +225,23 @@ private data class JourneyStageUi(
 private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
     val afterDecision = decision != Decision.PENDING
 
-    // Registered and Fee Paid are never independently observable here: per
-    // docs/APP_API_CONTRACT.md, a registration only becomes reachable by this app once it's
-    // already PAID, so `paid` can never actually be false on a screen the app can render. Two
-    // stages for one fact was redundant, so this is one merged stage, not two.
+    // Registered and Fee Paid are one stage because the app only reaches already-paid registrations.
     val stages = mutableListOf(
         JourneyStageUi(
-            title = "Registered",
-            subtitle = "Application submitted & ₹50 fee verified",
+            titleRes = R.string.common_registered,
+            subtitle = UiText.StringResource(R.string.tracker_registered_subtitle),
             state = StageState.DONE,
             icon = Icons.Default.Description
         ),
         JourneyStageUi(
-            title = "Aptitude Test",
+            titleRes = R.string.tracker_stage_aptitude_test,
             subtitle = when {
-                afterDecision -> testSlot.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
-                testResult == TestResult.PASSED -> "Test cleared"
-                testResult == TestResult.FAILED -> "Test not cleared"
-                else -> "" // the slot card below says it
+                afterDecision -> testSlot.startTime?.let {
+                    UiText.StringResource(R.string.tracker_completed_on, arrayOf(formatDateTime(it)))
+                } ?: UiText.StringResource(R.string.tracker_completed)
+                testResult == TestResult.PASSED -> UiText.StringResource(R.string.tracker_test_cleared)
+                testResult == TestResult.FAILED -> UiText.StringResource(R.string.tracker_test_not_cleared)
+                else -> null // the slot card below says it
             },
             state = if (afterDecision || testResult != TestResult.PENDING) StageState.DONE else StageState.PENDING,
             icon = Icons.Default.Schedule,
@@ -261,12 +259,14 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
             }
         ),
         JourneyStageUi(
-            title = "Interview",
+            titleRes = R.string.tracker_stage_interview,
             subtitle = when {
-                afterDecision -> interview.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
-                testResult == TestResult.PASSED -> "" // the slot card below says it
-                testResult == TestResult.FAILED -> "Not available"
-                else -> "Opens once you pass the test"
+                afterDecision -> interview.startTime?.let {
+                    UiText.StringResource(R.string.tracker_completed_on, arrayOf(formatDateTime(it)))
+                } ?: UiText.StringResource(R.string.tracker_completed)
+                testResult == TestResult.PASSED -> null // the slot card below says it
+                testResult == TestResult.FAILED -> UiText.StringResource(R.string.tracker_interview_not_available)
+                else -> UiText.StringResource(R.string.tracker_interview_opens_after_test)
             },
             state = if (afterDecision) StageState.DONE else StageState.PENDING,
             icon = Icons.Default.Groups,
@@ -285,14 +285,14 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
     )
 
     val (decisionTitle, decisionSubtitle) = when (decision) {
-        Decision.SELECTED -> "Selected" to "Congratulations! You're now a member."
-        Decision.WAITLISTED -> "Waitlisted" to "You're on the waitlist. We'll notify you."
-        Decision.REJECTED -> "Not selected" to "Thank you for applying."
-        Decision.PENDING -> "Decision" to "Awaiting result"
+        Decision.SELECTED -> R.string.tracker_decision_selected to R.string.tracker_selected_subtitle
+        Decision.WAITLISTED -> R.string.tracker_decision_waitlisted to R.string.tracker_waitlisted_subtitle
+        Decision.REJECTED -> R.string.tracker_decision_not_selected to R.string.tracker_not_selected_subtitle
+        Decision.PENDING -> R.string.tracker_stage_decision to R.string.tracker_awaiting_result
     }
     stages += JourneyStageUi(
-        title = decisionTitle,
-        subtitle = decisionSubtitle,
+        titleRes = decisionTitle,
+        subtitle = UiText.StringResource(decisionSubtitle),
         state = if (decision == Decision.SELECTED) StageState.DONE else StageState.PENDING,
         icon = Icons.Default.Flag,
         decision = decision
@@ -309,20 +309,19 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
     }
 }
 
+@Composable
 private fun RecruitmentStatus.statusLine(stages: List<JourneyStageUi>): String {
     val current = stages.firstOrNull { it.state == StageState.CURRENT }
     return when {
-        decision == Decision.SELECTED -> "You're all set. Welcome to Innogeeks!"
-        current != null -> "You're on track. Next up: ${current.title}."
-        else -> "Here's where things stand."
+        decision == Decision.SELECTED -> stringResource(R.string.tracker_status_selected)
+        current != null -> stringResource(R.string.tracker_status_next_up, stringResource(current.titleRes))
+        else -> stringResource(R.string.tracker_status_default)
     }
 }
 
 private val nodeAnchorSize = 24.dp
 
-// A single vertical route through the recruitment stages. The connector line is drawn from each
-// node's real measured position (onGloballyPositioned), never guessed coordinates, so it cannot
-// misalign with the rows the way a hand-authored path could.
+// A vertical route whose connector line is drawn from each node's measured position, so it cannot misalign.
 @Composable
 private fun JourneyStages(
     stages: List<JourneyStageUi>,
@@ -432,8 +431,8 @@ private fun JourneyStageRow(
 
     // Rows stagger in on entry rather than appearing fully formed — same technique
     // DomainDetail's ProjectRow uses (slide in, staggered by index).
-    var visible by remember(stage.title) { mutableStateOf(false) }
-    LaunchedEffect(stage.title) {
+    var visible by remember(stage.titleRes) { mutableStateOf(false) }
+    LaunchedEffect(stage.titleRes) {
         delay(80L * index)
         visible = true
     }
@@ -492,9 +491,7 @@ private fun JourneyStageRow(
                 Icon(
                     imageVector = stage.icon,
                     contentDescription = null,
-                    // dotColor is either a light/colored circle (primary/secondary/outline for a
-                    // terminal decision) or, for a plain pending stage, the near-background
-                    // outlineVariant — the icon needs the opposite contrast in each case.
+                    // The icon needs the opposite contrast of the dot, which is light for active stages and near-background for pending ones.
                     tint = if (dotColor == scheme.outlineVariant) scheme.outline else scheme.background,
                     modifier = Modifier.size(if (isCurrent) 13.dp else 11.dp)
                 )
@@ -511,7 +508,7 @@ private fun JourneyStageRow(
 
         Column(modifier = textModifier) {
             Text(
-                text = stage.title,
+                text = stringResource(stage.titleRes),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = when {
@@ -520,9 +517,9 @@ private fun JourneyStageRow(
                     else -> scheme.onSurfaceVariant
                 }
             )
-            if (stage.subtitle.isNotEmpty()) {
+            if (stage.subtitle != null) {
                 Text(
-                    text = stage.subtitle,
+                    text = stage.subtitle.asString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp)
@@ -559,7 +556,7 @@ private fun StageSlotCard(
         if (slot.start != null) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "YOUR SLOT",
+                    text = stringResource(R.string.tracker_your_slot),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -586,19 +583,19 @@ private fun StageSlotCard(
             }
         } else {
             Text(
-                text = "No slot yet",
+                text = stringResource(R.string.tracker_no_slot_yet),
                 style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant
             )
         }
 
         when {
-            slot.canChange && booked -> OutlinedButton(onClick = onPickClick) { Text(text = "Change slot") }
+            slot.canChange && booked -> OutlinedButton(onClick = onPickClick) { Text(text = stringResource(R.string.tracker_change_slot)) }
             slot.canChange -> Button(onClick = onPickClick) {
-                Text(text = if (slot.kind == SlotKind.TEST) "Pick test slot" else "Pick interview slot")
+                Text(text = stringResource(if (slot.kind == SlotKind.TEST) R.string.tracker_pick_test_slot else R.string.tracker_pick_interview_slot))
             }
             else -> Text(
-                text = "Changing slots is turned off",
+                text = stringResource(R.string.tracker_changing_slots_is_turned_off),
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant
             )
@@ -623,7 +620,7 @@ private fun DecisionNoteCard(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = "Note from Admin",
+            text = stringResource(R.string.tracker_note_from_admin),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = scheme.onSecondaryContainer
@@ -652,9 +649,8 @@ private fun NonSelectionCard(
     when (decision) {
         Decision.WAITLISTED -> {
             icon = Icons.Default.HourglassTop
-            headline = "You're on the waitlist"
-            message = "We'll notify you the moment a seat opens up — no action needed right now. " +
-                "In the meantime, the Resources tab is open to you."
+            headline = stringResource(R.string.tracker_you_re_on_the_waitlist)
+            message = stringResource(R.string.tracker_waitlisted_message)
         }
         // REJECTED is terminal — MainScaffold routes those users straight to a Resources-first
         // tab layout and Tracker is never shown, so there's no card to render for it here.
@@ -696,7 +692,7 @@ private fun NonSelectionCard(
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
-            Text(text = "Browse Resources", modifier = Modifier.padding(start = 8.dp))
+            Text(text = stringResource(R.string.tracker_browse_resources), modifier = Modifier.padding(start = 8.dp))
         }
     }
 }
@@ -828,9 +824,7 @@ private fun TrackerScreenWaitlistedPreview() {
     }
 }
 
-// No TrackerScreenRejectedPreview — REJECTED is a terminal decision MainScaffold now routes
-// away from Tracker entirely (see MainScaffold.kt's TabMode.REJECTED), so this state is
-// unreachable in the running app.
+// No Rejected preview: REJECTED is terminal and the shell routes those users away from the Tracker.
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
 @Composable

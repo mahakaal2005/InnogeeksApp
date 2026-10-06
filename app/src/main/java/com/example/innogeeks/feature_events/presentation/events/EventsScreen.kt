@@ -60,10 +60,10 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.koinViewModel
+import com.example.innogeeks.core.presentation.UiText
+import androidx.compose.ui.res.stringResource
 
-// Nested NavHost scoped to just this tab's content area — MainScaffold's bottom nav
-// lives outside this Box, so the list/detail pair slide underneath it. Bottom-bar
-// visibility itself is reported up via onBottomBarVisibilityChanged (see MainScaffold).
+// Nested NavHost scoped to this tab; the bottom bar visibility is reported up via onBottomBarVisibilityChanged.
 @Composable
 fun EventsRoot(
     hazeState: HazeState,
@@ -138,7 +138,7 @@ fun EventsScreen(
 
         if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = scheme.error)
+                Text(text = state.error.asString(), color = scheme.error)
             }
             return@Box
         }
@@ -166,13 +166,13 @@ private fun EventListScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Events",
+                    text = stringResource(R.string.common_events),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
                 )
                 Text(
-                    text = "Everything the club runs — display only, no registration.",
+                    text = stringResource(R.string.events_everything_the_club_runs_display),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -233,12 +233,12 @@ private fun EventDetailScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.common_back),
                         tint = scheme.onSurface
                     )
                 }
                 Text(
-                    text = "Event details",
+                    text = stringResource(R.string.events_event_details),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
@@ -247,7 +247,7 @@ private fun EventDetailScreen(
 
             if (event.eventLink.isNotBlank()) {
                 Text(
-                    text = "View post",
+                    text = stringResource(R.string.events_view_post),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = scheme.primary,
@@ -275,6 +275,7 @@ private fun EventDetailScreen(
             color = scheme.onSurface
         )
 
+        val attendeesText = stringResource(R.string.events_attendees, event.attendees)
         Text(
             text = buildString {
                 append(dayLabel(event.date))
@@ -284,7 +285,7 @@ private fun EventDetailScreen(
                 append(event.date.year)
                 if (event.timeAndPlace.isNotBlank()) append(" · ${event.timeAndPlace}")
                 if (event.cadence.isNotBlank()) append(" · ${event.cadence}")
-                if (event.attendees > 0) append(" · ${event.attendees} attendees")
+                if (event.attendees > 0) append(" · $attendeesText")
             },
             style = MaterialTheme.typography.bodySmall,
             color = scheme.onSurfaceVariant
@@ -396,7 +397,7 @@ private fun EventsScreenLoadingPreview() {
 private fun EventsScreenErrorPreview() {
     InnogeeksTheme {
         EventsScreen(
-            state = EventsState(isLoading = false, error = "Failed to load events."),
+            state = EventsState(isLoading = false, error = UiText.DynamicString("Failed to load events.")),
             hazeState = HazeState(),
             onAction = {}
         )

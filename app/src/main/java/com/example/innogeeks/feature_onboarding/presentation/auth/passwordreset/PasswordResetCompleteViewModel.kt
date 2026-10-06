@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import edu.kiet.innogeeks.R
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SubmitPasswordResetUseCase
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidator
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.channels.Channel
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class PasswordResetCompleteViewModel(
     private val collegeEmail: String,
     private val passwordResetToken: String,
-    private val authFlowRepository: AuthFlowRepository,
+    private val submitPasswordResetUseCase: SubmitPasswordResetUseCase,
     private val authValidator: AuthValidator
 ) : ViewModel() {
 
@@ -88,7 +88,7 @@ class PasswordResetCompleteViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.completePasswordReset(
+            val result = submitPasswordResetUseCase(
                 collegeEmail = collegeEmail,
                 passwordResetToken = passwordResetToken,
                 password = password

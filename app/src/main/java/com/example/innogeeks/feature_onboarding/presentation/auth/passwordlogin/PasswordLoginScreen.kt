@@ -22,6 +22,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun PasswordLoginRoot(
@@ -51,13 +52,13 @@ fun PasswordLoginScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Welcome back",
-        subtitle = "Enter the password for ${state.collegeEmail}.",
+        title = stringResource(R.string.auth_password_login_welcome_back),
+        subtitle = stringResource(R.string.auth_password_login_subtitle, state.collegeEmail),
         modifier = modifier,
         footer = {
             TextButton(onClick = { onAction(PasswordLoginAction.OnBackClick) }) {
                 Text(
-                    text = "Use a different email",
+                    text = stringResource(R.string.auth_use_a_different_email),
                     color = Color.White.copy(alpha = 0.7f)
                 )
             }
@@ -66,7 +67,7 @@ fun PasswordLoginScreen(
         AuthPasswordField(
             value = state.password,
             onValueChange = { onAction(PasswordLoginAction.OnPasswordChange(it)) },
-            label = "Password",
+            label = stringResource(R.string.auth_password_login_password),
             isVisible = state.isPasswordVisible,
             onToggleVisibility = { onAction(PasswordLoginAction.OnTogglePasswordVisibility) },
             error = state.passwordError,
@@ -80,7 +81,7 @@ fun PasswordLoginScreen(
             enabled = !state.isSubmitting
         ) {
             Text(
-                text = "Forgot password?",
+                text = stringResource(R.string.auth_password_login_forgot_password),
                 color = Color.White.copy(alpha = 0.7f)
             )
         }
@@ -92,7 +93,7 @@ fun PasswordLoginScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Log in",
+            text = stringResource(R.string.common_log_in),
             onClick = { onAction(PasswordLoginAction.OnLoginClick) },
             isSubmitting = state.isSubmitting
         )
