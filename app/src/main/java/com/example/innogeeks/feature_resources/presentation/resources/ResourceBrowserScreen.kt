@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.core.presentation.components.liquidGlass
-import com.example.innogeeks.feature_domains.domain.model.Domain
+import com.example.innogeeks.core.domain.model.Domain
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceSearchBar

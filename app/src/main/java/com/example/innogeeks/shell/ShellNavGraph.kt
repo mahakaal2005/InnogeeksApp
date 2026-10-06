@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_home.presentation.navigation
+package com.example.innogeeks.shell
 
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -7,12 +7,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.innogeeks.core.domain.session.SessionRepository
 import com.example.innogeeks.core.navigation.MainRoute
-import com.example.innogeeks.feature_home.presentation.MainScaffold
 import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
 
-// Extension on NavGraphBuilder — plugs home into the NavHost the same way onboardingGraph does.
-fun NavGraphBuilder.homeGraph(
+// Extension on NavGraphBuilder — plugs the app shell into the NavHost the same way onboardingGraph does.
+fun NavGraphBuilder.shellGraph(
     onNavigateToAuth: () -> Unit
 ) {
     navigation<MainRoute>(startDestination = MainScaffoldRoute) {

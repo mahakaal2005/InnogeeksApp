@@ -47,7 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.innogeeks.core.presentation.components.StatTile
 import com.example.innogeeks.core.presentation.components.liquidGlass
-import com.example.innogeeks.feature_domains.domain.model.Domain
+import com.example.innogeeks.core.domain.model.Domain
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import com.example.innogeeks.feature_resources.presentation.resources.components.domainAccent

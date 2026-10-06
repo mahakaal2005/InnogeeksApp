@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
-import com.example.innogeeks.feature_domains.domain.model.Domain
+import com.example.innogeeks.core.domain.model.Domain
 import com.example.innogeeks.feature_domains.presentation.domains.components.DomainDetail
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState

@@ -1,4 +1,4 @@
-package com.example.innogeeks.feature_home.presentation
+package com.example.innogeeks.shell
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler

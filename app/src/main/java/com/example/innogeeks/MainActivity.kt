@@ -8,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.innogeeks.core.navigation.MainRoute
-import com.example.innogeeks.feature_home.presentation.navigation.homeGraph
+import com.example.innogeeks.shell.shellGraph
 import com.example.innogeeks.feature_onboarding.presentation.navigation.AuthGraphRoute
 import com.example.innogeeks.feature_onboarding.presentation.navigation.OnboardingGraphRoute
 import com.example.innogeeks.feature_onboarding.presentation.navigation.authGraph
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     // Registers MainRoute and MainScaffold
-                    homeGraph(
+                    shellGraph(
                         onNavigateToAuth = { navController.navigate(AuthGraphRoute) }
                     )
 

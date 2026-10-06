@@ -1,6 +1,6 @@
 package com.example.innogeeks.feature_domains.presentation.domains
 
-import com.example.innogeeks.feature_domains.domain.model.Domain
+import com.example.innogeeks.core.domain.model.Domain
 
 data class DomainsState(
     val isLoading: Boolean = true,

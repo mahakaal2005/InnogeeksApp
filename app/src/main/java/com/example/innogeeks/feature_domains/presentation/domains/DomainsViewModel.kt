@@ -2,7 +2,7 @@ package com.example.innogeeks.feature_domains.presentation.domains
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.innogeeks.feature_domains.domain.DomainsRepository
+import com.example.innogeeks.core.domain.repository.DomainsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

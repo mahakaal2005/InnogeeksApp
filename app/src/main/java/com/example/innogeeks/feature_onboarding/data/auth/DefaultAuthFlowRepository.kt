@@ -1,7 +1,7 @@
 package com.example.innogeeks.feature_onboarding.data.auth
 
-import com.example.innogeeks.core.domain.model.UserDomain
 import com.example.innogeeks.core.domain.model.UserRole
+import com.example.innogeeks.core.domain.session.SessionRefresher
 import com.example.innogeeks.core.domain.session.SessionRepository
 import com.example.innogeeks.core.domain.util.EmptyResult
 import com.example.innogeeks.core.domain.util.Result
@@ -10,14 +10,13 @@ import com.example.innogeeks.feature_onboarding.domain.auth.AuthError
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthRemoteDataSource
 import com.example.innogeeks.feature_onboarding.domain.auth.NextStep
-import com.example.innogeeks.feature_profile.domain.repository.ProfileRepository
 
 // Thin layer over the data source whose one real job is to trap the access token here
 // and hand it to SessionRepository instead of returning it upward.
 class DefaultAuthFlowRepository(
     private val remote: AuthRemoteDataSource,
     private val sessionRepository: SessionRepository,
-    private val profileRepository: ProfileRepository
+    private val sessionRefresher: SessionRefresher
 ) : AuthFlowRepository {
 
     override suspend fun checkEmail(collegeEmail: String): Result<NextStep, AuthError> =
@@ -96,18 +95,6 @@ class DefaultAuthFlowRepository(
             role = UserRole.REGISTERED,
             domain = null
         )
-        val profile = profileRepository.getProfile()
-        if (profile is Result.Success) {
-            sessionRepository.updateRoleAndDomain(
-                role = parseRole(profile.data.role),
-                domain = profile.data.domain?.let(::parseDomain)
-            )
-        }
+        sessionRefresher.refreshRoleAndDomain()
     }
-
-    private fun parseRole(raw: String): UserRole =
-        runCatching { UserRole.valueOf(raw) }.getOrDefault(UserRole.REGISTERED)
-
-    private fun parseDomain(raw: String): UserDomain? =
-        runCatching { UserDomain.valueOf(raw) }.getOrNull()
 }

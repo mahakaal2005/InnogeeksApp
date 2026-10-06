@@ -33,9 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.core.presentation.components.StatTile
-import com.example.innogeeks.feature_domains.domain.model.Domain
-import com.example.innogeeks.feature_domains.domain.model.DomainMember
-import com.example.innogeeks.feature_domains.domain.model.DomainMemberRole
+import com.example.innogeeks.core.domain.model.Domain
+import com.example.innogeeks.core.domain.model.DomainMember
+import com.example.innogeeks.core.domain.model.DomainMemberRole
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
