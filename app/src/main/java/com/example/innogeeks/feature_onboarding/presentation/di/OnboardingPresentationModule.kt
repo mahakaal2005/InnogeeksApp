@@ -21,18 +21,22 @@ val onboardingPresentationModule = module {
     // so they take those as runtime parameters instead of resolving them from the graph.
     viewModelOf(::EmailGateViewModel)
     viewModel { params ->
-        VerifyCodeViewModel(collegeEmail = params.get(), authFlowRepository = get())
+        VerifyCodeViewModel(
+            collegeEmail = params.get(),
+            sendVerificationCodeUseCase = get(),
+            submitVerificationCodeUseCase = get()
+        )
     }
     viewModel { params ->
         SetPasswordViewModel(
             collegeEmail = params.get(),
             passwordSetupToken = params.get(),
-            authFlowRepository = get(),
+            submitPasswordSetupUseCase = get(),
             authValidator = get()
         )
     }
     viewModel { params ->
-        PasswordLoginViewModel(collegeEmail = params.get(), authFlowRepository = get())
+        PasswordLoginViewModel(collegeEmail = params.get(), submitLoginUseCase = get())
     }
 
     // Password reset flow. Mirrors the first-login verification flow structure.
@@ -40,14 +44,15 @@ val onboardingPresentationModule = module {
     viewModel { params ->
         PasswordResetVerifyCodeViewModel(
             collegeEmail = params.get(),
-            authFlowRepository = get()
+            sendPasswordResetCodeUseCase = get(),
+            submitPasswordResetCodeUseCase = get()
         )
     }
     viewModel { params ->
         PasswordResetCompleteViewModel(
             collegeEmail = params.get(),
             passwordResetToken = params.get(),
-            authFlowRepository = get(),
+            submitPasswordResetUseCase = get(),
             authValidator = get()
         )
     }

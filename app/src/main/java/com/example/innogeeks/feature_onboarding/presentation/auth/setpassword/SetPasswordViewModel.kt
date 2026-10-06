@@ -7,7 +7,7 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthApiError
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthError
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SubmitPasswordSetupUseCase
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidator
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.channels.Channel
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class SetPasswordViewModel(
     private val collegeEmail: String,
     private val passwordSetupToken: String,
-    private val authFlowRepository: AuthFlowRepository,
+    private val submitPasswordSetupUseCase: SubmitPasswordSetupUseCase,
     private val authValidator: AuthValidator
 ) : ViewModel() {
 
@@ -81,7 +81,7 @@ class SetPasswordViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.setPassword(
+            val result = submitPasswordSetupUseCase(
                 collegeEmail = collegeEmail,
                 passwordSetupToken = passwordSetupToken,
                 password = password

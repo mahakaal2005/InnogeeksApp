@@ -3,7 +3,7 @@ package com.example.innogeeks.feature_onboarding.presentation.auth.passwordreset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.innogeeks.core.domain.util.Result
-import com.example.innogeeks.feature_onboarding.domain.auth.AuthFlowRepository
+import com.example.innogeeks.feature_onboarding.domain.use_case.SendPasswordResetCodeUseCase
 import com.example.innogeeks.feature_onboarding.domain.auth.AuthValidator
 import com.example.innogeeks.feature_onboarding.presentation.mapper.toUiText
 import kotlinx.coroutines.channels.Channel
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PasswordResetRequestViewModel(
-    private val authFlowRepository: AuthFlowRepository,
+    private val sendPasswordResetCodeUseCase: SendPasswordResetCodeUseCase,
     private val authValidator: AuthValidator
 ) : ViewModel() {
 
@@ -50,7 +50,7 @@ class PasswordResetRequestViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, formError = null) }
-            val result = authFlowRepository.requestPasswordResetCode(email)
+            val result = sendPasswordResetCodeUseCase(email)
             _state.update { it.copy(isSubmitting = false) }
 
             when (result) {
