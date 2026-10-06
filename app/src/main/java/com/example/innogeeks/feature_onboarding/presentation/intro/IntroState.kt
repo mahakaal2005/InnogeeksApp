@@ -3,13 +3,14 @@ package com.example.innogeeks.feature_onboarding.presentation.intro
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
 import edu.kiet.innogeeks.R
+import androidx.annotation.StringRes
 
 // One intro slide's content. Immutable so Compose can skip recomposition safely.
 @Immutable
 data class IntroPage(
     @DrawableRes val imageRes: Int,
-    val title: String,
-    val subtitle: String
+    @StringRes val titleRes: Int,
+    @StringRes val subtitleRes: Int
 )
 
 // The intro carousel's state. pages is the fixed content; currentPage tracks which slide is
@@ -26,17 +27,17 @@ data class IntroState(
 val defaultIntroPages = listOf(
     IntroPage(
         imageRes = R.drawable.microchip,
-        title = "Build the Future",
-        subtitle = "Work on real projects with the official technical club of KIET."
+        titleRes = R.string.intro_build_future_title,
+        subtitleRes = R.string.intro_build_future_subtitle
     ),
     IntroPage(
         imageRes = R.drawable.network,
-        title = "Learn From Seniors",
-        subtitle = "Join hackathons, bootcamps, and mentoring sessions across every domain."
+        titleRes = R.string.intro_learn_seniors_title,
+        subtitleRes = R.string.intro_learn_seniors_subtitle
     ),
     IntroPage(
         imageRes = R.drawable.rocket,
-        title = "Launch Your Career",
-        subtitle = "Grow your skills, ship your ideas, and stand out. We teach, we learn, we conquer."
+        titleRes = R.string.intro_launch_career_title,
+        subtitleRes = R.string.intro_launch_career_subtitle
     )
 )

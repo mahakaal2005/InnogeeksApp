@@ -22,6 +22,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun VerifyCodeRoot(
@@ -55,13 +56,13 @@ fun VerifyCodeScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Check your email",
-        subtitle = "We sent a 6-digit code to ${state.collegeEmail}. It expires in 10 minutes.",
+        title = stringResource(R.string.auth_check_your_email),
+        subtitle = stringResource(R.string.auth_code_sent_subtitle, state.collegeEmail),
         modifier = modifier,
         footer = {
             TextButton(onClick = { onAction(VerifyCodeAction.OnBackClick) }) {
                 Text(
-                    text = "Use a different email",
+                    text = stringResource(R.string.auth_use_a_different_email),
                     color = Color.White.copy(alpha = 0.7f)
                 )
             }
@@ -81,7 +82,7 @@ fun VerifyCodeScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Verify",
+            text = stringResource(R.string.auth_verify),
             onClick = { onAction(VerifyCodeAction.OnVerifyClick) },
             isSubmitting = state.isSubmitting,
             enabled = state.isCodeComplete
@@ -95,9 +96,9 @@ fun VerifyCodeScreen(
         ) {
             Text(
                 text = when {
-                    state.isRequestingCode -> "Sending..."
-                    state.resendSecondsLeft > 0 -> "Resend code in ${state.resendSecondsLeft}s"
-                    else -> "Resend code"
+                    state.isRequestingCode -> stringResource(R.string.auth_sending)
+                    state.resendSecondsLeft > 0 -> stringResource(R.string.auth_resend_code_in, state.resendSecondsLeft)
+                    else -> stringResource(R.string.auth_resend_code)
                 },
                 color = if (state.canResend) {
                     MaterialTheme.colorScheme.secondary

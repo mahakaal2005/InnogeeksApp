@@ -53,6 +53,7 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
 
 
 // Root = smart half: pulls the ViewModel from Koin, observes the one-shot routing event.
@@ -174,7 +175,7 @@ fun SplashScreen(
                 // The logo itself: spins + scales in (stage 1), then breathes (ambient).
                 Image(
                     painter = painterResource(R.drawable.app_logo),
-                    contentDescription = "Innogeeks logo",
+                    contentDescription = stringResource(R.string.common_innogeeks_logo),
                     modifier = Modifier
                         .size(96.dp)
                         .graphicsLayer {
@@ -222,7 +223,7 @@ fun SplashScreen(
 
             // Stage 3 — Identity: motto last, the phrase the club is known by.
             Text(
-                text = "We Learn, We Teach, We Conquer",
+                text = stringResource(R.string.splash_we_learn_we_teach_we),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
@@ -232,7 +233,7 @@ fun SplashScreen(
 
         // Stage 4 — Anchor: footer caption settles in last, pinned to the screen bottom.
         Text(
-            text = "KIET Deemed To Be University",
+            text = stringResource(R.string.splash_kiet_deemed_to_be_university),
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.5f),
             modifier = Modifier

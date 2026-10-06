@@ -29,6 +29,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthPrimaryBut
 import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun PasswordResetRequestRoot(
@@ -56,13 +57,13 @@ fun PasswordResetRequestScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Reset password",
-        subtitle = "Enter your college email. We'll send you a verification code to reset your password.",
+        title = stringResource(R.string.auth_reset_password),
+        subtitle = stringResource(R.string.auth_reset_request_enter_your_college_email_we),
         modifier = modifier,
         footer = {
             TextButton(onClick = { onAction(PasswordResetRequestAction.OnBackClick) }) {
                 Text(
-                    text = "Back to login",
+                    text = stringResource(R.string.auth_back_to_login),
                     color = Color.White.copy(alpha = 0.7f)
                 )
             }
@@ -71,7 +72,7 @@ fun PasswordResetRequestScreen(
         OutlinedTextField(
             value = state.email,
             onValueChange = { onAction(PasswordResetRequestAction.OnEmailChange(it)) },
-            label = { Text("College email") },
+            label = { Text(stringResource(R.string.auth_college_email)) },
             singleLine = true,
             enabled = !state.isSubmitting,
             isError = state.emailError != null,
@@ -99,7 +100,7 @@ fun PasswordResetRequestScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Send verification code",
+            text = stringResource(R.string.auth_reset_request_send_verification_code),
             onClick = { onAction(PasswordResetRequestAction.OnSendCodeClick) },
             isSubmitting = state.isSubmitting
         )

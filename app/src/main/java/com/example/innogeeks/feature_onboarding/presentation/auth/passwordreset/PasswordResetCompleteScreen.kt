@@ -23,6 +23,7 @@ import com.example.innogeeks.feature_onboarding.presentation.auth.AuthScaffold
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun PasswordResetCompleteRoot(
@@ -51,14 +52,14 @@ fun PasswordResetCompleteScreen(
     modifier: Modifier = Modifier
 ) {
     AuthScaffold(
-        title = "Create new password",
-        subtitle = "Choose a new password for ${state.collegeEmail}.",
+        title = stringResource(R.string.auth_reset_complete_create_new_password),
+        subtitle = stringResource(R.string.auth_reset_complete_subtitle, state.collegeEmail),
         modifier = modifier
     ) {
         AuthPasswordField(
             value = state.password,
             onValueChange = { onAction(PasswordResetCompleteAction.OnPasswordChange(it)) },
-            label = "New password",
+            label = stringResource(R.string.auth_new_password),
             isVisible = state.isPasswordVisible,
             onToggleVisibility = { onAction(PasswordResetCompleteAction.OnTogglePasswordVisibility) },
             error = state.passwordError,
@@ -70,7 +71,7 @@ fun PasswordResetCompleteScreen(
         AuthPasswordField(
             value = state.confirmPassword,
             onValueChange = { onAction(PasswordResetCompleteAction.OnConfirmPasswordChange(it)) },
-            label = "Confirm password",
+            label = stringResource(R.string.auth_confirm_password),
             isVisible = state.isConfirmPasswordVisible,
             onToggleVisibility = { onAction(PasswordResetCompleteAction.OnToggleConfirmPasswordVisibility) },
             error = state.confirmPasswordError,
@@ -80,7 +81,7 @@ fun PasswordResetCompleteScreen(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "8 to 128 characters.",
+            text = stringResource(R.string.auth_password_length_hint),
             style = MaterialTheme.typography.bodySmall,
             color = Color.White.copy(alpha = 0.55f),
             textAlign = TextAlign.Start
@@ -93,7 +94,7 @@ fun PasswordResetCompleteScreen(
         Spacer(Modifier.height(16.dp))
 
         AuthPrimaryButton(
-            text = "Reset password",
+            text = stringResource(R.string.auth_reset_password),
             onClick = { onAction(PasswordResetCompleteAction.OnResetPasswordClick) },
             isSubmitting = state.isSubmitting
         )

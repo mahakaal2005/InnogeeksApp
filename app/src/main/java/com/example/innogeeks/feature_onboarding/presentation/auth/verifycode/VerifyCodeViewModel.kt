@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import edu.kiet.innogeeks.R
 
 class VerifyCodeViewModel(
     private val collegeEmail: String,
@@ -130,7 +131,7 @@ class VerifyCodeViewModel(
     }
 
     private fun enterFullCodeText() =
-        UiText.DynamicString("Enter all ${VerifyCodeState.CODE_LENGTH} digits.")
+        UiText.StringResource(R.string.auth_enter_all_digits, arrayOf(VerifyCodeState.CODE_LENGTH))
 
     private companion object {
         const val RESEND_SECONDS = 60
