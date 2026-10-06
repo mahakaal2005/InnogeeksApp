@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import edu.kiet.innogeeks.R
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import androidx.compose.ui.res.stringResource
 
 // Logo lockup on the left; the right side is an avatar for a registered user and a Log in
 // pill for a guest, since a guest has no profile to open.
@@ -46,7 +47,7 @@ fun HomeTopBar(
     ) {
         Image(
             painter = painterResource(R.drawable.app_logo),
-            contentDescription = "Innogeeks",
+            contentDescription = stringResource(R.string.home_innogeeks),
             contentScale = ContentScale.Fit,
             modifier = Modifier.height(26.dp)
         )
@@ -65,7 +66,7 @@ fun HomeTopBar(
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "Log in",
+                    text = stringResource(R.string.common_log_in),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.secondary

@@ -17,14 +17,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 @Composable
 fun HomeHero(modifier: Modifier = Modifier) {
     // buildAnnotatedString lets one Text carry two colours in a single line.
+    val buildText = stringResource(R.string.home_hero_build)
+    val futureText = stringResource(R.string.home_hero_the_future)
     val headline: AnnotatedString = buildAnnotatedString {
-        append("BUILD ")
+        append("$buildText ")
         withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append("THE FUTURE")
+            append(futureText)
         }
     }
 
@@ -41,7 +45,7 @@ fun HomeHero(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "Every idea starts as a sketch, and every sketch gets pulled into something real.",
+            text = stringResource(R.string.home_every_idea_starts_as_a),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 6.dp)

@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.innogeeks.core.presentation.UiText
+import edu.kiet.innogeeks.R
 
 class ResourcesViewModel(
     private val domainsRepository: DomainsRepository,
@@ -45,7 +47,7 @@ class ResourcesViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Failed to load resources. Please try again."
+                        error = UiText.StringResource(R.string.resources_load_error)
                     )
                 }
             }

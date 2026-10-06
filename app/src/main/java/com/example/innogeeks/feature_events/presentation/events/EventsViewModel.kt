@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.innogeeks.core.presentation.UiText
+import edu.kiet.innogeeks.R
 
 class EventsViewModel(
     private val repository: EventsRepository
@@ -31,7 +33,7 @@ class EventsViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            error = "Failed to load events. Please try again."
+                            error = UiText.StringResource(R.string.events_load_error)
                         )
                     }
                 }

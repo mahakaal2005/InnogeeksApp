@@ -39,6 +39,8 @@ import com.example.innogeeks.core.domain.model.DomainMemberRole
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Everything shown on a domain's detail page.
 @Composable
@@ -58,18 +60,18 @@ fun DomainDetail(
         val team = domain.members.filter { it.role == DomainMemberRole.TEAM }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile(value = domain.memberCount, caption = "Members", hazeState = hazeState, modifier = Modifier.weight(1f))
-            StatTile(value = coordinators.size, caption = "Coordinators", hazeState = hazeState, modifier = Modifier.weight(1f))
-            StatTile(value = team.size, caption = "Core Team", hazeState = hazeState, modifier = Modifier.weight(1f))
+            StatTile(value = domain.memberCount, caption = stringResource(R.string.domains_members), hazeState = hazeState, modifier = Modifier.weight(1f))
+            StatTile(value = coordinators.size, caption = stringResource(R.string.domains_coordinators), hazeState = hazeState, modifier = Modifier.weight(1f))
+            StatTile(value = team.size, caption = stringResource(R.string.domains_core_team), hazeState = hazeState, modifier = Modifier.weight(1f))
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SectionLabel("Tech Stack")
+            SectionLabel(stringResource(R.string.domains_tech_stack))
             StaggeredChipFlow(items = domain.techStack, accent = accent)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SectionLabel("About")
+            SectionLabel(stringResource(R.string.domains_about))
             Text(
                 text = domain.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -80,9 +82,9 @@ fun DomainDetail(
         if (team.isNotEmpty()) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SectionLabel("Core Team")
+                SectionLabel(stringResource(R.string.domains_core_team))
                 team.forEach { member ->
-                    MemberRow(name = member.name, initials = member.initials, accent = accent, subtitle = "3rd Year · ${domain.name}")
+                    MemberRow(name = member.name, initials = member.initials, accent = accent, subtitle = stringResource(R.string.domains_third_year_subtitle, domain.name))
                 }
             }
         }
@@ -90,9 +92,9 @@ fun DomainDetail(
         if (coordinators.isNotEmpty()) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SectionLabel("Coordinators")
+                SectionLabel(stringResource(R.string.domains_coordinators))
                 coordinators.forEach { member ->
-                    MemberRow(name = member.name, initials = member.initials, accent = accent, subtitle = "2nd Year · ${domain.name}")
+                    MemberRow(name = member.name, initials = member.initials, accent = accent, subtitle = stringResource(R.string.domains_second_year_subtitle, domain.name))
                 }
             }
         }

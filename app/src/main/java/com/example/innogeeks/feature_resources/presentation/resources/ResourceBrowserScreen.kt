@@ -54,6 +54,9 @@ import com.example.innogeeks.feature_resources.presentation.resources.components
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
+import androidx.compose.ui.res.pluralStringResource
 
 // Per-domain resource feed: hero counts, a type filter bar, and the feed itself
 // (grouped by type when "All" is active, flat otherwise) — mirrors specs/UI_CLAUDE/resources_tab.html screen 2.
@@ -101,7 +104,7 @@ fun ResourceBrowserScreen(
                         .clickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = scheme.onSurface)
+                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = scheme.onSurface)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -111,7 +114,11 @@ fun ResourceBrowserScreen(
                         color = scheme.onSurface
                     )
                     Text(
-                        text = "${resources.size} resource${if (resources.size != 1) "s" else ""} · ${typesPresent.size} types",
+                        text = stringResource(
+                            R.string.resources_summary,
+                            pluralStringResource(R.plurals.resources_count, resources.size, resources.size),
+                            typesPresent.size
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = scheme.onSurfaceVariant
                     )
@@ -138,7 +145,7 @@ fun ResourceBrowserScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 TypeFilterChip(
-                    label = "All",
+                    label = stringResource(R.string.resources_all),
                     isActive = activeType == null,
                     onClick = { activeType = null },
                     modifier = Modifier.weight(1f)
@@ -169,7 +176,7 @@ fun ResourceBrowserScreen(
                 if (suggestions.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "No matches for \"$query\".",
+                            text = stringResource(R.string.resources_no_matches, query),
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant
                         )
@@ -177,12 +184,12 @@ fun ResourceBrowserScreen(
                 } else {
                     Column(modifier = Modifier.padding(top = 24.dp)) {
                         Text(
-                            text = "No matches for \"$query\".",
+                            text = stringResource(R.string.resources_no_matches, query),
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 14.dp)
                         )
-                        SectionLabel("Did you mean")
+                        SectionLabel(stringResource(R.string.resources_did_you_mean))
                         suggestions.forEach { resource ->
                             ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
                         }
@@ -191,7 +198,7 @@ fun ResourceBrowserScreen(
             } else if (visible.isEmpty()) {
                 Box(modifier = Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Nothing here yet.",
+                        text = stringResource(R.string.resources_nothing_here_yet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.onSurfaceVariant
                     )
@@ -202,7 +209,7 @@ fun ResourceBrowserScreen(
                     val group = visible.filter { it.type == type }
                     if (group.isNotEmpty()) {
                         Column(modifier = Modifier.padding(bottom = 14.dp)) {
-                            SectionLabel("${type.label()}s")
+                            SectionLabel(stringResource(R.string.resources_type_group, type.label()))
                             group.forEach { resource ->
                                 ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
                             }

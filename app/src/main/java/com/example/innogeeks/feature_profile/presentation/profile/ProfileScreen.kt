@@ -92,7 +92,7 @@ fun ProfileScreen(
         ) {
             item {
                 Text(
-                    text = stringResource(R.string.profile_title),
+                    text = stringResource(R.string.common_profile),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface

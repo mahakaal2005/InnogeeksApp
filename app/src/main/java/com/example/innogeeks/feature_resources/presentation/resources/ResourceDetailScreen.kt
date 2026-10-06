@@ -47,6 +47,8 @@ import com.example.innogeeks.feature_resources.presentation.resources.components
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Full-page resource detail: icon + title + type/level chips, description, meta rows, open button.
 @Composable
@@ -94,7 +96,7 @@ fun ResourceDetailScreen(
                         .clickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = scheme.onSurface)
+                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = scheme.onSurface)
                 }
                 Text(
                     text = resource.type.label(),
@@ -149,9 +151,9 @@ fun ResourceDetailScreen(
                     .liquidGlass(hazeState = hazeState, cornerRadius = 16.dp)
                     .padding(horizontal = 14.dp)
             ) {
-                MetaRow(icon = Icons.Filled.CalendarMonth, label = "Added", value = resource.date)
-                MetaRow(icon = Icons.Filled.Person, label = "By", value = resource.author)
-                MetaRow(icon = Icons.Filled.Speed, label = "Level", value = resource.level, showDivider = false)
+                MetaRow(icon = Icons.Filled.CalendarMonth, label = stringResource(R.string.resources_meta_added), value = resource.date)
+                MetaRow(icon = Icons.Filled.Person, label = stringResource(R.string.resources_meta_by), value = resource.author)
+                MetaRow(icon = Icons.Filled.Speed, label = stringResource(R.string.resources_meta_level), value = resource.level, showDivider = false)
             }
 
             Row(
@@ -172,7 +174,7 @@ fun ResourceDetailScreen(
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    text = "Open Resource",
+                    text = stringResource(R.string.resources_open_resource),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSecondary,

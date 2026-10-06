@@ -34,6 +34,8 @@ import com.example.innogeeks.feature_domains.presentation.domains.components.Dom
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Full-page version of what used to be the in-place expanded row — its own glow-blob
 // backdrop (same recipe as AuthGlowBackground) so it reads as glass, not a flat black sheet.
@@ -90,7 +92,7 @@ fun DomainDetailScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.common_back),
                         tint = scheme.onSurface
                     )
                 }

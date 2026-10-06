@@ -65,6 +65,8 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.innogeeks.core.presentation.UiText
+import androidx.compose.ui.res.stringResource
 
 // Nested NavHost scoped to just this tab's content area — MainScaffold's bottom nav
 // lives outside this Box, so the list/detail pair slide underneath it. Bottom-bar
@@ -130,7 +132,7 @@ fun DomainsScreen(
 
         if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = scheme.error)
+                Text(text = state.error.asString(), color = scheme.error)
             }
             return@Box
         }
@@ -147,13 +149,13 @@ fun DomainsScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Domains",
+                    text = stringResource(R.string.common_domains),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = scheme.onSurface
                 )
                 Text(
-                    text = "Tap any domain to see its full picture — team, stack, and wins.",
+                    text = stringResource(R.string.domains_tap_any_domain_to_see),
                     style = MaterialTheme.typography.bodyMedium,
                     color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 10.dp)
@@ -479,7 +481,7 @@ private fun DomainsScreenLoadingPreview() {
 private fun DomainsScreenErrorPreview() {
     InnogeeksTheme {
         DomainsScreen(
-            state = DomainsState(isLoading = false, error = "Failed to load domains."),
+            state = DomainsState(isLoading = false, error = UiText.DynamicString("Failed to load domains.")),
             hazeState = HazeState(),
             onDomainClick = {}
         )

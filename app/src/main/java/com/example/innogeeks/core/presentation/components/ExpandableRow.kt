@@ -37,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
+import androidx.compose.ui.res.stringResource
+import edu.kiet.innogeeks.R
 
 // Slot-based accordion shared by Domains, Past Events and Profile.
 // State is hoisted so a parent can enforce "only one row open at a time".
@@ -118,7 +120,7 @@ fun ExpandableRow(
 
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowDown,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                contentDescription = stringResource(if (isExpanded) R.string.common_collapse else R.string.common_expand),
                 tint = chevronColor,
                 modifier = Modifier
                     .size(20.dp)

@@ -36,6 +36,8 @@ import edu.kiet.innogeeks.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.innogeeks.core.presentation.UiText
 
 // Root composable that connects to the ViewModel and receives shared HazeState.
 @Composable
@@ -94,7 +96,7 @@ fun HomeScreen(
 
         if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = MaterialTheme.colorScheme.error)
+                Text(text = state.error.asString(), color = MaterialTheme.colorScheme.error)
             }
             return@Box
         }
@@ -122,7 +124,7 @@ fun HomeScreen(
 
             item {
                 SectionLabel(
-                    text = "Domains",
+                    text = stringResource(R.string.common_domains),
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             }
@@ -137,7 +139,7 @@ fun HomeScreen(
 
             item {
                 SectionLabel(
-                    text = "Class Culture",
+                    text = stringResource(R.string.home_class_culture),
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             }
@@ -151,7 +153,7 @@ fun HomeScreen(
 
             item {
                 SectionLabel(
-                    text = "Achievements",
+                    text = stringResource(R.string.home_achievements),
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             }
@@ -216,7 +218,7 @@ private fun HomeScreenLoadingPreview() {
 private fun HomeScreenErrorPreview() {
     InnogeeksTheme {
         HomeScreen(
-            state = HomeState(isLoading = false, error = "Failed to load home data."),
+            state = HomeState(isLoading = false, error = UiText.DynamicString("Failed to load home data.")),
             hazeState = HazeState(),
             onAction = {}
         )
