@@ -387,40 +387,6 @@ private fun InnogeeksBottomNav(
     }
 }
 
-// Placeholder for Phase 4 screens (Attendance) — Member/Coordinator tabs aren't reachable yet.
-@Composable
-private fun PlaceholderScreen(
-    title: String,
-    hazeState: HazeState,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .hazeSource(hazeState)
-            .padding(18.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.shell_coming_in_phase_2),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
 // No Koin context exists in previews — koinInject() would throw, so previews pass a stub
 // use case directly. Session defaults to Guest here anyway, so it's never actually invoked.
 private val previewRecruitmentUseCase = GetRecruitmentStatusUseCase(
