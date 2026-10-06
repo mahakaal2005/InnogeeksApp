@@ -61,6 +61,7 @@ import com.example.innogeeks.ui.theme.displayFontFamily
 import edu.kiet.innogeeks.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
 
 private const val AUTO_ADVANCE_MS = 4200L
 // One easing for every photo move — slow and settled, no springy overshoot.
@@ -199,7 +200,7 @@ private fun ClassCultureCardContent(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "SESSIONS & MOMENTS",
+                text = stringResource(R.string.home_sessions_moments),
                 style = MaterialTheme.typography.labelSmall,
                 letterSpacing = 1.sp,
                 color = scheme.onSurfaceVariant,
