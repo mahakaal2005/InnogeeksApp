@@ -88,7 +88,7 @@ fun SplashScreen(
     var started by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { started = true }
 
-    // ---- Stage 1: SPIN-UP. The logo rotates in (-180 -> 0), scales up (0 -> 1) and settles. ----
+    // Stage 1: SPIN-UP. The logo rotates in (-180 -> 0), scales up (0 -> 1) and settles.
     val logoScale by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
@@ -100,14 +100,14 @@ fun SplashScreen(
         label = "logoSpin"
     )
 
-    // ---- Stage 2: PULSE. A cyan ring expands + fades outward once, right after the logo lands. ----
+    // Stage 2: PULSE. A cyan ring expands + fades outward once, right after the logo lands.
     val pulseProgress by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 1200, delayMillis = 900, easing = LinearOutSlowInEasing),
         label = "pulseProgress"
     )
 
-    // ---- AMBIENT: continuous, subtle life once everything has arrived. ----
+    // AMBIENT: continuous, subtle life once everything has arrived.
     val ambient = rememberInfiniteTransition(label = "ambient")
     // Logo "breathes": a gentle float up/down.
     val breathe by ambient.animateFloat(

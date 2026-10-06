@@ -104,9 +104,7 @@ class ProfileViewModel(
         }
     }
 
-    // Calls the real backend endpoint — this both starts the 14-day grace period server-side
-    // AND revokes the current token in the same request (APP_API_CONTRACT.md §16.1), so
-    // signOut() here is just clearing local state to match what the server already did.
+    // Calls the real endpoint, which starts the 14-day grace period and revokes the token, so signOut() only clears local state.
     private fun requestAccountDeletion() {
         viewModelScope.launch {
             _state.update { it.copy(isRequestingDeletion = true, deleteAccountError = null) }

@@ -32,10 +32,7 @@ internal fun fuzzyScore(query: String, target: String): Double {
     return 1.0 - distance.toDouble() / max(query.length, target.length)
 }
 
-// Comparing a short query against a whole multi-word title buries the match under all the
-// words the user didn't type — "don" vs "The Odin Project" scores low as one long string, but
-// high once compared word-by-word against "Odin". Word score picks the best matching word per
-// query word, so a single-word typo query still finds the resource it's clearly aimed at.
+// Word-by-word scoring finds a short typo query in a long title, which one whole-string comparison would bury.
 private fun wordScore(query: String, target: String): Double {
     val queryWords = query.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
     val targetWords = target.trim().split(Regex("\\s+")).filter { it.isNotBlank() }

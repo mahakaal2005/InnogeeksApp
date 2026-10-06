@@ -135,9 +135,7 @@ fun ProfileScreen(
     }
 }
 
-// Identity -> action -> info. The two "About Innogeeks" facts collapse into accordions
-// (same ExpandableRow pattern the registered profile below already uses) instead of dumping
-// full paragraphs inline, so the guest state doesn't read as a different, text-heavier screen.
+// Identity, then action, then info, with the About facts as accordions so the guest screen stays light.
 private fun LazyListScope.guestProfile(
     expandedSection: ProfileSection?,
     hazeState: HazeState,

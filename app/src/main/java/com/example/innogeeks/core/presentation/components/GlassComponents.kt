@@ -29,9 +29,7 @@ import dev.chrisbanes.haze.blur.materials.HazeMaterials
 // Shared onboarding UI building blocks, so Login/SignUp (and future auth screens) don't
 // duplicate the glassmorphism styling. Extracted from LoginScreen once a 2nd screen needed it.
 
-// A soft, heavily-blurred circle of brand color — the "stage lighting" the glass blurs.
-// BlurredEdgeTreatment.Unbounded lets the blur bleed PAST the box bounds so it reads as a
-// diffuse round glow, not a hard-edged square (the default clamps blur to the bounds).
+// A soft blurred circle of brand color that lets the blur bleed past the box bounds as a diffuse glow.
 @Composable
 fun GlowBlob(color: Color, modifier: Modifier = Modifier) {
     Box(
@@ -70,11 +68,7 @@ fun AuthGlowBackground(hazeState: HazeState, modifier: Modifier = Modifier) {
 // FULL is the original recipe everywhere; REDUCED is a quieter variant for guest profile.
 enum class GlassIntensity { FULL, REDUCED }
 
-// THE single liquid-glass recipe. Every auth card (login, signup, splash, intro) applies
-// this so the look is defined in ONE place — change it here, every screen updates.
-// Haze 2.0: blurEffect{} is a plain (non-composable) builder lambda, so all @Composable
-// calls (HazeMaterials.thin, MaterialTheme colors) must be resolved HERE in composable scope
-// first, then passed into the non-composable lambdas as plain values.
+// The single liquid-glass recipe; composable values are resolved here first because the Haze blur builder is not composable.
 @Composable
 fun Modifier.liquidGlass(
     hazeState: HazeState,

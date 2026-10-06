@@ -26,10 +26,7 @@ class InnogeeksApp : Application(){
     override fun onCreate() {
         super.onCreate()
 
-        // startKoin runs once at app launch: it reads every module's recipes and builds the
-        // dependency graph. A module not listed here is never loaded — this is the single
-        // place the whole app's DI is assembled. androidContext hands Koin the app Context
-        // so definitions that need it (DataStore, Room later) can inject it.
+        // startKoin runs once at launch and assembles every module's recipes into the app's DI graph.
         startKoin {
             androidContext(this@InnogeeksApp)
             modules(

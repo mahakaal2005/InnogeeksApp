@@ -21,12 +21,7 @@ import kotlinx.serialization.SerializationException
 
 
 
-// Typed extension helpers over Ktor. Data sources call get/post/delete and receive a
-// clean Result<T, DataError.Network> — every exception and HTTP error is handled here,
-// so nothing above the data layer ever sees a raw throwable.
-//
-// inline + reified: these are inline so the reified type (Response/Request) survives at
-// runtime — that's what lets response.body<T>() know which type to deserialize into.
+// Typed helpers over Ktor that return Result<T, DataError.Network> so no throwable escapes the data layer; inline + reified so body<T>() knows its type.
 
 // GET: reifies only Response (we receive+parse a reply; we send no typed body).
 // queryParameters become ?key=value filters; empty map = no query string.
@@ -85,10 +80,7 @@ suspend inline fun <reified Response : Any> HttpClient.delete(
     }
 }
 
-// Runs the call and catches failures that happen BEFORE a reply arrives:
-//   no DNS -> NO_INTERNET, bad JSON -> SERIALIZATION, anything else -> UNKNOWN.
-// ensureActive() re-throws coroutine cancellation (user left the screen) instead of
-// swallowing it as a fake UNKNOWN error. If no throw, hand off to responseToResult.
+// Catches failures that happen before a reply arrives (no DNS, bad JSON, anything else) and rethrows cancellation instead of swallowing it.
 suspend inline fun <reified T> safeCall(
     execute: () -> HttpResponse
 ): Result<T, DataError.Network> {
@@ -108,9 +100,7 @@ suspend inline fun <reified T> safeCall(
     return responseToResult(response)
 }
 
-// The server DID reply — map its HTTP status to Success (parse body) or a typed error.
-// (The exception-based errors come from safeCall; the status-based ones come from here —
-// together they cover every DataError.Network case.)
+// The server did reply, so map its HTTP status to a parsed Success or a typed error.
 suspend inline fun <reified T> responseToResult(
     response: HttpResponse
 ): Result<T, DataError.Network> {

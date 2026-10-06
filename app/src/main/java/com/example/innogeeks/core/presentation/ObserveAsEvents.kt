@@ -7,9 +7,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.Flow
 
-// Lifecycle-safe collector for one-shot event flows. @Composable so it can use Compose
-// tools (LocalLifecycleOwner, LaunchedEffect) and tie its listening to the screen's life —
-// it draws nothing. Generic <T> so any screen's event type can reuse it.
+// Lifecycle-safe collector for one-shot event flows; it draws nothing.
 @Composable
 fun <T> ObserveAsEvents(flow: Flow<T>, onEvent: (T) -> Unit) {
     // .current gives the OWNER (the screen that HAS a lifecycle); .lifecycle reaches the

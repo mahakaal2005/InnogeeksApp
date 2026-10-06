@@ -80,14 +80,7 @@ class DefaultAuthFlowRepository(
         return result
     }
 
-    // Role/domain never come from the login response — only GET /me knows them, same as the
-    // real backend contract. The token must be stored BEFORE calling getProfile(): Ktor's Auth
-    // plugin loads the bearer token once via SessionRepository.currentAccessToken() and caches
-    // it for the HttpClient's lifetime (no refreshTokens block is configured), so calling
-    // getProfile() first — with no token yet in the session — makes that first authenticated
-    // call go out with no Authorization header, and it never reloads on later calls either.
-    // Falls back to REGISTERED/null if the profile fetch fails so a login still succeeds even
-    // if the profile call has trouble.
+    // Store the token before refreshing role/domain, because Ktor loads the bearer token once and would otherwise send the first /me call without it.
     private suspend fun signIn(accessToken: String, collegeEmail: String) {
         sessionRepository.signIn(
             accessToken = accessToken,

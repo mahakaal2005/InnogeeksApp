@@ -122,10 +122,7 @@ fun TrackerScreen(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    // A plain Column, not LazyColumn: this screen's content is a handful of fixed blocks, never
-    // a long list, and the journey below needs Modifier.weight(1f) to fill the remaining screen
-    // height (LazyColumn items can't do that — they size to content, leaving empty space below
-    // on taller phones, which is what the original stacked-box layout also did unnoticed).
+    // A plain Column, not LazyColumn, because the journey needs Modifier.weight(1f) to fill the remaining height.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -228,10 +225,7 @@ private data class JourneyStageUi(
 private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
     val afterDecision = decision != Decision.PENDING
 
-    // Registered and Fee Paid are never independently observable here: per
-    // docs/APP_API_CONTRACT.md, a registration only becomes reachable by this app once it's
-    // already PAID, so `paid` can never actually be false on a screen the app can render. Two
-    // stages for one fact was redundant, so this is one merged stage, not two.
+    // Registered and Fee Paid are one stage because the app only reaches already-paid registrations.
     val stages = mutableListOf(
         JourneyStageUi(
             titleRes = R.string.common_registered,
@@ -327,9 +321,7 @@ private fun RecruitmentStatus.statusLine(stages: List<JourneyStageUi>): String {
 
 private val nodeAnchorSize = 24.dp
 
-// A single vertical route through the recruitment stages. The connector line is drawn from each
-// node's real measured position (onGloballyPositioned), never guessed coordinates, so it cannot
-// misalign with the rows the way a hand-authored path could.
+// A vertical route whose connector line is drawn from each node's measured position, so it cannot misalign.
 @Composable
 private fun JourneyStages(
     stages: List<JourneyStageUi>,
@@ -499,9 +491,7 @@ private fun JourneyStageRow(
                 Icon(
                     imageVector = stage.icon,
                     contentDescription = null,
-                    // dotColor is either a light/colored circle (primary/secondary/outline for a
-                    // terminal decision) or, for a plain pending stage, the near-background
-                    // outlineVariant — the icon needs the opposite contrast in each case.
+                    // The icon needs the opposite contrast of the dot, which is light for active stages and near-background for pending ones.
                     tint = if (dotColor == scheme.outlineVariant) scheme.outline else scheme.background,
                     modifier = Modifier.size(if (isCurrent) 13.dp else 11.dp)
                 )
@@ -834,9 +824,7 @@ private fun TrackerScreenWaitlistedPreview() {
     }
 }
 
-// No TrackerScreenRejectedPreview — REJECTED is a terminal decision MainScaffold now routes
-// away from Tracker entirely (see MainScaffold.kt's TabMode.REJECTED), so this state is
-// unreachable in the running app.
+// No Rejected preview: REJECTED is terminal and the shell routes those users away from the Tracker.
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
 @Composable

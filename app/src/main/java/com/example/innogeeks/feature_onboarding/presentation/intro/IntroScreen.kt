@@ -115,9 +115,7 @@ fun IntroScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Skip lives top-right, out of the way — pure liquid glass over plain text,
-            // NO blue overlay (that would read as tinted glassmorphism, not liquid glass).
-            // Hidden on the last page — Get Started already exits from there.
+            // Skip sits top-right as untinted liquid glass and is hidden on the last page, where Get Started exits.
             if (state.isLastPage) {
                 Spacer(Modifier.height(40.dp))
             } else {

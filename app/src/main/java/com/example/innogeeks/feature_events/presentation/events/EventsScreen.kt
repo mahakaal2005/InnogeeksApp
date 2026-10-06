@@ -63,9 +63,7 @@ import org.koin.androidx.compose.koinViewModel
 import com.example.innogeeks.core.presentation.UiText
 import androidx.compose.ui.res.stringResource
 
-// Nested NavHost scoped to just this tab's content area — MainScaffold's bottom nav
-// lives outside this Box, so the list/detail pair slide underneath it. Bottom-bar
-// visibility itself is reported up via onBottomBarVisibilityChanged (see MainScaffold).
+// Nested NavHost scoped to this tab; the bottom bar visibility is reported up via onBottomBarVisibilityChanged.
 @Composable
 fun EventsRoot(
     hazeState: HazeState,

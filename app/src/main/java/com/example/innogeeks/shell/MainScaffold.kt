@@ -123,9 +123,7 @@ private fun UserRole.tabs(): List<BottomNavTab> = when (this) {
     UserRole.REGISTERED, UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> registeredTabs
 }
 
-// Guest / normal Authenticated / REJECTED all have different tab counts+content, and this
-// composable survives login/logout/decision changes in place (session just recomposes, nothing
-// navigates) — this key drives the reset-to-0 effect below.
+// This key drives the reset-to-0 effect below, since the composable survives login, logout and decision changes in place.
 private enum class TabMode { GUEST, AUTHENTICATED, REJECTED }
 
 @Composable
@@ -167,9 +165,7 @@ fun MainScaffold(
         else -> TabMode.AUTHENTICATED
     }
 
-    // Without this, selectedTab keeps its old index into the NEW tab list on a mode change,
-    // landing on the wrong tab or, if the new list is shorter, on an index the `when` below
-    // doesn't handle at all (blank screen).
+    // Without this reset, selectedTab keeps an index into the new tab list that may be wrong or out of range.
     var previousTabMode by rememberSaveable { mutableStateOf(tabMode) }
     LaunchedEffect(tabMode) {
         if (previousTabMode != tabMode) {
