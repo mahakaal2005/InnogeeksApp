@@ -9,6 +9,7 @@ import com.example.innogeeks.feature_events.presentation.di.eventsPresentationMo
 import com.example.innogeeks.feature_home.data.di.homeDataModule
 import com.example.innogeeks.feature_home.presentation.di.homePresentationModule
 import com.example.innogeeks.feature_onboarding.data.di.onboardingDataModule
+import com.example.innogeeks.feature_onboarding.domain.di.onboardingDomainModule
 import com.example.innogeeks.feature_onboarding.presentation.onboardingPresentationModule
 import com.example.innogeeks.feature_profile.data.di.profileDataModule
 import com.example.innogeeks.feature_profile.domain.di.profileDomainModule
@@ -36,6 +37,7 @@ class InnogeeksApp : Application(){
                 coreDataModule,
                 // feature: onboarding
                 onboardingDataModule,
+                onboardingDomainModule,
                 onboardingPresentationModule,
                 // feature: home
                 homeDataModule,

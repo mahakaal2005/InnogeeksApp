@@ -36,9 +36,7 @@ val onboardingPresentationModule = module {
     }
 
     // Password reset flow. Mirrors the first-login verification flow structure.
-    viewModel { params ->
-        PasswordResetRequestViewModel(authFlowRepository = get(), authValidator = get())
-    }
+    viewModelOf(::PasswordResetRequestViewModel)
     viewModel { params ->
         PasswordResetVerifyCodeViewModel(
             collegeEmail = params.get(),
