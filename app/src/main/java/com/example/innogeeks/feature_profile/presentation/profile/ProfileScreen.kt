@@ -293,7 +293,7 @@ private fun LazyListScope.registeredProfile(
             initials = (profile?.fullName ?: session.collegeEmail).toInitials(),
             name = profile?.fullName ?: session.collegeEmail.substringBefore('@'),
             subtitle = session.collegeEmail,
-            roleChip = profile?.role?.replace('_', ' ') ?: stringResource(R.string.profile_role_registered),
+            roleChip = profile?.role?.replace('_', ' ') ?: stringResource(R.string.common_registered),
             modifier = Modifier.padding(vertical = 6.dp)
         )
     }
