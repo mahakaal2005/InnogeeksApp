@@ -12,13 +12,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.feature_home.domain.model.Achievement
@@ -35,7 +35,6 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import edu.kiet.innogeeks.R
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 // Root composable that connects to the ViewModel and receives shared HazeState.
@@ -50,12 +49,10 @@ fun HomeRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                HomeEvent.NavigateToProfile -> onNavigateToProfile()
-                is HomeEvent.NavigateToEvents -> onNavigateToEvents(event.eventId)
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            HomeEvent.NavigateToProfile -> onNavigateToProfile()
+            is HomeEvent.NavigateToEvents -> onNavigateToEvents(event.eventId)
         }
     }
 

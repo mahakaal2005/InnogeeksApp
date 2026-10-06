@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.presentation.components.StatTile
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.core.domain.model.Domain
@@ -56,7 +56,6 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import com.example.innogeeks.ui.theme.displayFontFamily
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 // Nested NavHost scoped to this tab: domain picker -> per-domain feed -> resource detail.
@@ -70,11 +69,9 @@ fun ResourcesRoot(
     val navController = rememberNavController()
     val uriHandler = LocalUriHandler.current
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                is ResourcesEvent.OpenUrl -> uriHandler.openUri(event.url)
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is ResourcesEvent.OpenUrl -> uriHandler.openUri(event.url)
         }
     }
 

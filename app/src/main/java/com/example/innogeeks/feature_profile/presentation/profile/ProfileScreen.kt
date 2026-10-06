@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.domain.model.UserDomain
 import com.example.innogeeks.core.domain.model.UserRole
 import com.example.innogeeks.core.domain.session.Session
@@ -52,7 +52,6 @@ import com.example.innogeeks.feature_profile.presentation.profile.components.Pro
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -63,11 +62,9 @@ fun ProfileRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                ProfileEvent.NavigateToAuth -> onNavigateToAuth()
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            ProfileEvent.NavigateToAuth -> onNavigateToAuth()
         }
     }
 

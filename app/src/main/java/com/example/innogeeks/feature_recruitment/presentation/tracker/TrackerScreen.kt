@@ -60,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
@@ -75,7 +76,6 @@ import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
@@ -93,11 +93,9 @@ fun TrackerRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                TrackerEvent.NavigateToResources -> onNavigateToResources()
-            }
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            TrackerEvent.NavigateToResources -> onNavigateToResources()
         }
     }
 
