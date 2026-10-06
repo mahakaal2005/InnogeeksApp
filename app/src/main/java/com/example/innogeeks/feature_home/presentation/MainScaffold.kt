@@ -222,8 +222,7 @@ fun MainScaffold(
                         when (selectedTab) {
                             0 -> TrackerRoot(
                                 hazeState = hazeState,
-                                onNavigateToResources = { selectedTab = 2 },
-                                onBottomBarVisibilityChanged = { showBottomBar = it }
+                                onNavigateToResources = { selectedTab = 2 }
                             )
                             1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
                             2 -> ResourcesRoot(hazeState = hazeState)

@@ -69,9 +69,9 @@ private val timeFormat = LocalDateTime.Format {
     amPmMarker("AM", "PM")
 }
 
-private fun formatDate(iso: String): String = formatOrRaw(iso) { dateFormat.format(it) }
+internal fun formatDate(iso: String): String = formatOrRaw(iso) { dateFormat.format(it) }
 
-private fun formatTime(iso: String): String = formatOrRaw(iso) { timeFormat.format(it) }
+internal fun formatTime(iso: String): String = formatOrRaw(iso) { timeFormat.format(it) }
 
 private fun formatOrRaw(iso: String, format: (LocalDateTime) -> String): String = try {
     format(Instant.parse(iso).toLocalDateTime(TimeZone.currentSystemDefault()))

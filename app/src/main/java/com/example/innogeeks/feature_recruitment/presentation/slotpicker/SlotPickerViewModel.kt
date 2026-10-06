@@ -27,16 +27,15 @@ class SlotPickerViewModel(
     private val _events = Channel<SlotPickerEvent>()
     val events = _events.receiveAsFlow()
 
-    init {
-        loadSlots(showLoading = true)
-    }
-
     fun onAction(action: SlotPickerAction) {
         when (action) {
             is SlotPickerAction.OnSlotClick -> selectSlot(action.slotId)
             SlotPickerAction.OnConfirmClick -> bookSelectedSlot()
             SlotPickerAction.OnRetryClick -> loadSlots(showLoading = true)
-            SlotPickerAction.OnBackClick -> viewModelScope.launch { _events.send(SlotPickerEvent.NavigateBack) }
+            SlotPickerAction.OnSheetShown -> {
+                _state.update { it.copy(selectedSlotId = null, isBooking = false) }
+                loadSlots(showLoading = true)
+            }
         }
     }
 

@@ -44,7 +44,6 @@
     <string name="slot_switching_off">Changing slots is turned off. Contact the Innogeeks team if you need a change.</string>
     <string name="slot_empty">No slots are open right now. Check back soon.</string>
     <string name="slot_retry">Retry</string>
-    <string name="slot_back">Back</string>
     <string name="slot_error_full">That slot just filled up. Pick another one.</string>
     <string name="slot_error_switching_disabled">Changing slots is turned off right now.</string>
     <string name="slot_error_locked">Your current slot has already started.</string>

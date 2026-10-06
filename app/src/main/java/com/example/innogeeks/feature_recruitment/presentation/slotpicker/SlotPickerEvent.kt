@@ -4,6 +4,5 @@ import com.example.innogeeks.core.presentation.UiText
 
 sealed interface SlotPickerEvent {
     data object BookingConfirmed : SlotPickerEvent
-    data object NavigateBack : SlotPickerEvent
     data class ShowMessage(val message: UiText) : SlotPickerEvent
 }

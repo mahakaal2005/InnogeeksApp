@@ -8,26 +8,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,83 +44,78 @@ import com.example.innogeeks.core.presentation.ObserveAsEvents
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
 import com.example.innogeeks.ui.theme.InnogeeksTheme
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
 import edu.kiet.innogeeks.R
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+// Bottom sheet over the Tracker; the ViewModel is keyed per kind and reloads on every open.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SlotPickerRoot(
+fun SlotPickerSheet(
     kind: SlotKind,
-    hazeState: HazeState,
-    onBack: () -> Unit,
+    onDismiss: () -> Unit,
     onBooked: () -> Unit,
-    viewModel: SlotPickerViewModel = koinViewModel(parameters = { parametersOf(kind) })
+    viewModel: SlotPickerViewModel = koinViewModel(key = "slot-picker-$kind", parameters = { parametersOf(kind) })
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    LaunchedEffect(Unit) { viewModel.onAction(SlotPickerAction.OnSheetShown) }
+
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            SlotPickerEvent.BookingConfirmed -> onBooked()
-            SlotPickerEvent.NavigateBack -> onBack()
+            // Slide the sheet away first, then tell the Tracker to refresh.
+            SlotPickerEvent.BookingConfirmed -> scope.launch { sheetState.hide() }.invokeOnCompletion { onBooked() }
             is SlotPickerEvent.ShowMessage -> scope.launch {
                 snackbarHostState.showSnackbar(event.message.asString(context))
             }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        SlotPickerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 88.dp, start = 16.dp, end = 16.dp)
-        )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Box {
+            SlotPickerContent(state = state, onAction = viewModel::onAction)
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 72.dp, start = 16.dp, end = 16.dp)
+            )
+        }
     }
 }
 
 @Composable
-fun SlotPickerScreen(
+fun SlotPickerContent(
     state: SlotPickerState,
-    hazeState: HazeState,
     onAction: (SlotPickerAction) -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .hazeSource(hazeState)
+            .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 16.dp),
+            .padding(start = 18.dp, end = 18.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onAction(SlotPickerAction.OnBackClick) }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.slot_back),
-                    tint = scheme.onSurface
-                )
-            }
-            Text(
-                text = stringResource(
-                    if (state.kind == SlotKind.TEST) R.string.slot_picker_title_test
-                    else R.string.slot_picker_title_interview
-                ),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = scheme.onSurface
-            )
-        }
+        Text(
+            text = stringResource(
+                if (state.kind == SlotKind.TEST) R.string.slot_picker_title_test
+                else R.string.slot_picker_title_interview
+            ),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = scheme.onSurface
+        )
 
         Text(
             text = stringResource(R.string.slot_picker_subtitle),
@@ -142,7 +136,12 @@ fun SlotPickerScreen(
             )
         }
 
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .fillMaxWidth()
+                .heightIn(min = 160.dp)
+        ) {
             when {
                 state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
@@ -274,115 +273,108 @@ private val previewSlots = listOf(
     SlotUi("s3", "Fri, Aug 16", "10:00 AM – 11:30 AM", null, 1, 20, isFull = false, isMine = false)
 )
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerLoadingPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(state = SlotPickerState(isLoading = true), hazeState = HazeState(), onAction = {})
+        SlotPickerContent(state = SlotPickerState(isLoading = true), onAction = {})
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerListPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(isLoading = false, slots = previewSlots),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerSelectedPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(isLoading = false, slots = previewSlots, selectedSlotId = "s1"),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerSwitchPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(
                 isLoading = false,
                 slots = previewSlots.map { if (it.id == "s3") it.copy(isMine = true) else it },
                 currentSlotId = "s3",
                 selectedSlotId = "s1"
             ),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerBookingPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(isLoading = false, slots = previewSlots, selectedSlotId = "s1", isBooking = true),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerSwitchingOffPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(
                 isLoading = false,
                 slots = previewSlots.map { if (it.id == "s3") it.copy(isMine = true) else it },
                 currentSlotId = "s3",
                 switchingEnabled = false
             ),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerInterviewPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(
                 kind = SlotKind.INTERVIEW,
                 isLoading = false,
                 slots = previewSlots.map { it.copy(location = "Room 204, Innovation Block") }
             ),
-            hazeState = HazeState(),
             onAction = {}
         )
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerEmptyPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(state = SlotPickerState(isLoading = false), hazeState = HazeState(), onAction = {})
+        SlotPickerContent(state = SlotPickerState(isLoading = false), onAction = {})
     }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 800)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 640)
 @Composable
 private fun SlotPickerErrorPreview() {
     InnogeeksTheme {
-        SlotPickerScreen(
+        SlotPickerContent(
             state = SlotPickerState(isLoading = false, error = UiText.DynamicString("Network error")),
-            hazeState = HazeState(),
             onAction = {}
         )
     }

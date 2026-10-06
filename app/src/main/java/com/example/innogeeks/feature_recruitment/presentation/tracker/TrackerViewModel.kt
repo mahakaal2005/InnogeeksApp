@@ -32,7 +32,7 @@ class TrackerViewModel(
             TrackerAction.OnSlotsChanged -> loadRecruitmentStatus(showLoading = false)
             is TrackerAction.OnPickSlotClick -> {
                 viewModelScope.launch {
-                    _events.send(TrackerEvent.NavigateToSlotPicker(action.kind))
+                    _events.send(TrackerEvent.ShowSlotPicker(action.kind))
                 }
             }
             TrackerAction.OnBrowseResourcesClick -> {

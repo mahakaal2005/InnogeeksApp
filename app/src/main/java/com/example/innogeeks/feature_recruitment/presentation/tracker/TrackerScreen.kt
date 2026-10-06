@@ -8,8 +8,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,13 +58,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.example.innogeeks.core.presentation.components.GlowBlob
 import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_recruitment.domain.model.Decision
@@ -74,9 +67,9 @@ import com.example.innogeeks.feature_recruitment.domain.model.Interview
 import com.example.innogeeks.feature_recruitment.domain.model.RecruitmentStatus
 import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
 import com.example.innogeeks.feature_recruitment.domain.model.TestResult
-import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerRoot
-import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerRoute
-import com.example.innogeeks.feature_recruitment.presentation.slotpicker.TrackerHomeRoute
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerSheet
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.formatDate
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.formatTime
 import com.example.innogeeks.feature_recruitment.domain.model.TestSlot
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
@@ -91,55 +84,36 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 
-// The slot picker is pushed on this tab's own NavHost, so Back returns to the journey. Its
-// bottom-bar visibility is reported up via onBottomBarVisibilityChanged (see MainScaffold).
+// The slot picker opens as a bottom sheet over the journey, so the Tracker stays visible behind it.
 @Composable
 fun TrackerRoot(
     hazeState: HazeState,
     onNavigateToResources: () -> Unit = {},
-    onBottomBarVisibilityChanged: (Boolean) -> Unit = {},
     viewModel: TrackerViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val navController = rememberNavController()
-
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    LaunchedEffect(backStackEntry) {
-        onBottomBarVisibilityChanged(backStackEntry?.destination?.hasRoute<SlotPickerRoute>() != true)
-    }
+    var sheetKind by remember { mutableStateOf<SlotKind?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 TrackerEvent.NavigateToResources -> onNavigateToResources()
-                is TrackerEvent.NavigateToSlotPicker -> navController.navigate(SlotPickerRoute(event.kind))
+                is TrackerEvent.ShowSlotPicker -> sheetKind = event.kind
             }
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = TrackerHomeRoute,
-        enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
-        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
-        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }) },
-        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
-    ) {
-        composable<TrackerHomeRoute> {
-            TrackerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
-        }
-        composable<SlotPickerRoute> { entry ->
-            val route: SlotPickerRoute = entry.toRoute()
-            SlotPickerRoot(
-                kind = route.kind,
-                hazeState = hazeState,
-                onBack = { navController.popBackStack() },
-                onBooked = {
-                    viewModel.onAction(TrackerAction.OnSlotsChanged)
-                    navController.popBackStack()
-                }
-            )
-        }
+    TrackerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
+
+    sheetKind?.let { kind ->
+        SlotPickerSheet(
+            kind = kind,
+            onDismiss = { sheetKind = null },
+            onBooked = {
+                sheetKind = null
+                viewModel.onAction(TrackerAction.OnSlotsChanged)
+            }
+        )
     }
 }
 
@@ -236,7 +210,14 @@ fun TrackerScreen(
 // and drives its icon/color independent of the generic DONE/CURRENT/PENDING state below.
 private enum class StageState { DONE, CURRENT, PENDING }
 
-private data class StageCta(val label: String, val kind: SlotKind)
+// The slot shown under a stage; start == null means nothing is booked yet.
+private data class StageSlot(
+    val kind: SlotKind,
+    val start: String?,
+    val end: String?,
+    val location: String?,
+    val canChange: Boolean
+)
 
 private data class JourneyStageUi(
     val title: String,
@@ -244,7 +225,7 @@ private data class JourneyStageUi(
     val state: StageState,
     val icon: ImageVector,
     val decision: Decision? = null,
-    val cta: StageCta? = null
+    val slot: StageSlot? = null
 )
 
 private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
@@ -267,14 +248,19 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
                 afterDecision -> testSlot.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
                 testResult == TestResult.PASSED -> "Test cleared"
                 testResult == TestResult.FAILED -> "Test not cleared"
-                testSlot.booked -> "Slot booked: ${testSlot.startTime?.let { formatDateTime(it) } ?: "TBD"}"
-                else -> "Pick a test slot"
+                else -> "" // the slot card below says it
             },
             state = if (afterDecision || testResult != TestResult.PENDING) StageState.DONE else StageState.PENDING,
             icon = Icons.Default.Schedule,
-            // Once the admin records a result the slot is moot, so the picker closes.
-            cta = if (!afterDecision && testResult == TestResult.PENDING && (!testSlot.booked || testSlot.switchingEnabled)) {
-                StageCta(if (testSlot.booked) "Change slot" else "Pick test slot", SlotKind.TEST)
+            // Once the admin records a result the slot is moot, so the card goes away.
+            slot = if (!afterDecision && testResult == TestResult.PENDING) {
+                StageSlot(
+                    kind = SlotKind.TEST,
+                    start = testSlot.startTime.takeIf { testSlot.booked },
+                    end = testSlot.endTime,
+                    location = null,
+                    canChange = !testSlot.booked || testSlot.switchingEnabled
+                )
             } else {
                 null
             }
@@ -283,15 +269,20 @@ private fun RecruitmentStatus.toJourneyStages(): List<JourneyStageUi> {
             title = "Interview",
             subtitle = when {
                 afterDecision -> interview.startTime?.let { "Completed ${formatDateTime(it)}" } ?: "Completed"
-                interview.assigned -> "Interview scheduled: ${interview.startTime?.let { formatDateTime(it) } ?: "TBD"}"
-                testResult == TestResult.PASSED -> "Pick your interview slot"
+                testResult == TestResult.PASSED -> "" // the slot card below says it
                 testResult == TestResult.FAILED -> "Not available"
                 else -> "Opens once you pass the test"
             },
             state = if (afterDecision) StageState.DONE else StageState.PENDING,
             icon = Icons.Default.Groups,
-            cta = if (!afterDecision && testResult == TestResult.PASSED && (!interview.assigned || interview.switchingEnabled)) {
-                StageCta(if (interview.assigned) "Change slot" else "Pick interview slot", SlotKind.INTERVIEW)
+            slot = if (!afterDecision && testResult == TestResult.PASSED) {
+                StageSlot(
+                    kind = SlotKind.INTERVIEW,
+                    start = interview.startTime.takeIf { interview.assigned },
+                    end = interview.endTime,
+                    location = interview.location,
+                    canChange = !interview.assigned || interview.switchingEnabled
+                )
             } else {
                 null
             }
@@ -534,25 +525,88 @@ private fun JourneyStageRow(
                     else -> scheme.onSurfaceVariant
                 }
             )
-            Text(
-                text = stage.subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-            if (stage.cta != null) {
-                if (isCurrent) {
-                    Button(
-                        onClick = { onSlotCtaClick(stage.cta.kind) },
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) { Text(text = stage.cta.label) }
-                } else {
-                    OutlinedButton(
-                        onClick = { onSlotCtaClick(stage.cta.kind) },
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) { Text(text = stage.cta.label) }
+            if (stage.subtitle.isNotEmpty()) {
+                Text(
+                    text = stage.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            if (stage.slot != null) {
+                StageSlotCard(slot = stage.slot, onPickClick = { onSlotCtaClick(stage.slot.kind) })
+            }
+        }
+    }
+}
+
+// Shows the booked slot with a Change button, a lock note when switching is off, or a Pick button.
+@Composable
+private fun StageSlotCard(
+    slot: StageSlot,
+    onPickClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(16.dp)
+    val booked = slot.start != null
+
+    Column(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(scheme.onSurface.copy(alpha = 0.04f))
+            .border(1.dp, scheme.outlineVariant, shape)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (slot.start != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "YOUR SLOT",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = scheme.primary
+                )
+                Text(
+                    text = formatDate(slot.start),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = scheme.onSurface
+                )
+                Text(
+                    text = if (slot.end != null) "${formatTime(slot.start)} – ${formatTime(slot.end)}" else formatTime(slot.start),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = scheme.onSurfaceVariant
+                )
+                if (slot.location != null) {
+                    Text(
+                        text = slot.location,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant
+                    )
                 }
             }
+        } else {
+            Text(
+                text = "No slot yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.onSurfaceVariant
+            )
+        }
+
+        when {
+            slot.canChange && booked -> OutlinedButton(onClick = onPickClick) { Text(text = "Change slot") }
+            slot.canChange -> Button(onClick = onPickClick) {
+                Text(text = if (slot.kind == SlotKind.TEST) "Pick test slot" else "Pick interview slot")
+            }
+            else -> Text(
+                text = "Changing slots is turned off",
+                style = MaterialTheme.typography.bodySmall,
+                color = scheme.onSurfaceVariant
+            )
         }
     }
 }
