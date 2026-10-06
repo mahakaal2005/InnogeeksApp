@@ -5,6 +5,7 @@ import com.example.innogeeks.feature_recruitment.domain.use_case.GetRecruitmentS
 import com.example.innogeeks.feature_recruitment.domain.use_case.GetSlotsUseCase
 import com.example.innogeeks.feature_recruitment.domain.use_case.GetTestSlotBookingUseCase
 import com.example.innogeeks.feature_recruitment.domain.use_case.SubmitSlotBookingUseCase
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -12,6 +13,6 @@ val recruitmentDomainModule = module {
     singleOf(::GetRecruitmentStatusUseCase)
     singleOf(::GetTestSlotBookingUseCase)
     singleOf(::GetInterviewBookingUseCase)
-    singleOf(::GetSlotsUseCase)
-    singleOf(::SubmitSlotBookingUseCase)
+    factoryOf(::GetSlotsUseCase)
+    factoryOf(::SubmitSlotBookingUseCase)
 }
