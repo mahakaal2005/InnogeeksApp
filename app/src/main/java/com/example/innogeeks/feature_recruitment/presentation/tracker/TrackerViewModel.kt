@@ -29,12 +29,12 @@ class TrackerViewModel(
     fun onAction(action: TrackerAction) {
         when (action) {
             TrackerAction.OnRetryClick -> loadRecruitmentStatus()
-            TrackerAction.OnSlotsChanged -> loadRecruitmentStatus(showLoading = false)
-            is TrackerAction.OnPickSlotClick -> {
-                viewModelScope.launch {
-                    _events.send(TrackerEvent.ShowSlotPicker(action.kind))
-                }
+            TrackerAction.OnSlotsChanged -> {
+                _state.update { it.copy(slotPickerKind = null) }
+                loadRecruitmentStatus(showLoading = false)
             }
+            is TrackerAction.OnPickSlotClick -> _state.update { it.copy(slotPickerKind = action.kind) }
+            TrackerAction.OnSlotPickerDismissed -> _state.update { it.copy(slotPickerKind = null) }
             TrackerAction.OnBrowseResourcesClick -> {
                 viewModelScope.launch {
                     _events.send(TrackerEvent.NavigateToResources)

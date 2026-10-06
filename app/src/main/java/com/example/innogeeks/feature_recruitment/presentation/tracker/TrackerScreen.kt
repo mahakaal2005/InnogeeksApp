@@ -67,7 +67,7 @@ import com.example.innogeeks.feature_recruitment.domain.model.Interview
 import com.example.innogeeks.feature_recruitment.domain.model.RecruitmentStatus
 import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
 import com.example.innogeeks.feature_recruitment.domain.model.TestResult
-import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerSheet
+import com.example.innogeeks.feature_recruitment.presentation.slotpicker.SlotPickerRoot
 import com.example.innogeeks.feature_recruitment.presentation.slotpicker.formatDate
 import com.example.innogeeks.feature_recruitment.presentation.slotpicker.formatTime
 import com.example.innogeeks.feature_recruitment.domain.model.TestSlot
@@ -92,27 +92,22 @@ fun TrackerRoot(
     viewModel: TrackerViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var sheetKind by remember { mutableStateOf<SlotKind?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 TrackerEvent.NavigateToResources -> onNavigateToResources()
-                is TrackerEvent.ShowSlotPicker -> sheetKind = event.kind
             }
         }
     }
 
     TrackerScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
 
-    sheetKind?.let { kind ->
-        SlotPickerSheet(
+    state.slotPickerKind?.let { kind ->
+        SlotPickerRoot(
             kind = kind,
-            onDismiss = { sheetKind = null },
-            onBooked = {
-                sheetKind = null
-                viewModel.onAction(TrackerAction.OnSlotsChanged)
-            }
+            onDismiss = { viewModel.onAction(TrackerAction.OnSlotPickerDismissed) },
+            onBooked = { viewModel.onAction(TrackerAction.OnSlotsChanged) }
         )
     }
 }
@@ -930,6 +925,108 @@ private fun TrackerScreenTestFailedPreview() {
                     testResult = TestResult.FAILED,
                     testSlot = TestSlot(booked = true, startTime = "2026-08-15T10:00:00Z", endTime = "2026-08-15T11:00:00Z"),
                     interview = Interview(assigned = false, startTime = null, endTime = null, location = null, meetingUrl = null)
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun StageSlotCardEmptyPreview() {
+    InnogeeksTheme {
+        StageSlotCard(
+            slot = StageSlot(SlotKind.TEST, start = null, end = null, location = null, canChange = true),
+            onPickClick = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun StageSlotCardBookedPreview() {
+    InnogeeksTheme {
+        StageSlotCard(
+            slot = StageSlot(SlotKind.TEST, "2026-08-15T10:00:00Z", "2026-08-15T11:30:00Z", null, canChange = true),
+            onPickClick = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun StageSlotCardLockedPreview() {
+    InnogeeksTheme {
+        StageSlotCard(
+            slot = StageSlot(SlotKind.TEST, "2026-08-15T10:00:00Z", "2026-08-15T11:30:00Z", null, canChange = false),
+            onPickClick = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun StageSlotCardInterviewPreview() {
+    InnogeeksTheme {
+        StageSlotCard(
+            slot = StageSlot(
+                SlotKind.INTERVIEW, "2026-08-22T09:00:00Z", "2026-08-22T09:30:00Z",
+                "Room 204, Innovation Block", canChange = true
+            ),
+            onPickClick = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun TrackerScreenInterviewBookedPreview() {
+    InnogeeksTheme {
+        TrackerScreen(
+            state = TrackerState(
+                recruitmentStatus = RecruitmentStatus(
+                    paid = true,
+                    decision = Decision.PENDING,
+                    decisionNote = null,
+                    testResult = TestResult.PASSED,
+                    testSlot = TestSlot(booked = true, startTime = "2026-08-15T10:00:00Z", endTime = "2026-08-15T11:00:00Z"),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null
+                    )
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun TrackerScreenInterviewSwitchingOffPreview() {
+    InnogeeksTheme {
+        TrackerScreen(
+            state = TrackerState(
+                recruitmentStatus = RecruitmentStatus(
+                    paid = true,
+                    decision = Decision.PENDING,
+                    decisionNote = null,
+                    testResult = TestResult.PASSED,
+                    testSlot = TestSlot(booked = true, startTime = "2026-08-15T10:00:00Z", endTime = "2026-08-15T11:00:00Z"),
+                    interview = Interview(
+                        assigned = true,
+                        startTime = "2026-08-22T09:00:00Z",
+                        endTime = "2026-08-22T09:30:00Z",
+                        location = "Room 204, Innovation Block",
+                        meetingUrl = null,
+                        switchingEnabled = false
+                    )
                 )
             ),
             hazeState = HazeState(),

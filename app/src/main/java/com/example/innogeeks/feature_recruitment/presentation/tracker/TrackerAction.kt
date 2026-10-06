@@ -7,6 +7,8 @@ sealed interface TrackerAction {
     data object OnBrowseResourcesClick : TrackerAction
     data class OnPickSlotClick(val kind: SlotKind) : TrackerAction
 
+    data object OnSlotPickerDismissed : TrackerAction
+
     // Fired when the slot picker saved a booking, so the journey refreshes without a spinner.
     data object OnSlotsChanged : TrackerAction
 }

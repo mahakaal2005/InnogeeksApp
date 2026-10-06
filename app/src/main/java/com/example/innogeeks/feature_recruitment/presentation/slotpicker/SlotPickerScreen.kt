@@ -49,10 +49,10 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-// Bottom sheet over the Tracker; the ViewModel is keyed per kind and reloads on every open.
+// Bottom sheet over the Tracker; the ViewModel outlives the sheet, so each open reloads it.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SlotPickerSheet(
+fun SlotPickerRoot(
     kind: SlotKind,
     onDismiss: () -> Unit,
     onBooked: () -> Unit,
@@ -82,7 +82,7 @@ fun SlotPickerSheet(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Box {
-            SlotPickerContent(state = state, onAction = viewModel::onAction)
+            SlotPickerScreen(state = state, onAction = viewModel::onAction)
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier
@@ -94,7 +94,7 @@ fun SlotPickerSheet(
 }
 
 @Composable
-fun SlotPickerContent(
+fun SlotPickerScreen(
     state: SlotPickerState,
     onAction: (SlotPickerAction) -> Unit
 ) {
@@ -277,7 +277,7 @@ private val previewSlots = listOf(
 @Composable
 private fun SlotPickerLoadingPreview() {
     InnogeeksTheme {
-        SlotPickerContent(state = SlotPickerState(isLoading = true), onAction = {})
+        SlotPickerScreen(state = SlotPickerState(isLoading = true), onAction = {})
     }
 }
 
@@ -285,7 +285,7 @@ private fun SlotPickerLoadingPreview() {
 @Composable
 private fun SlotPickerListPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(isLoading = false, slots = previewSlots),
             onAction = {}
         )
@@ -296,7 +296,7 @@ private fun SlotPickerListPreview() {
 @Composable
 private fun SlotPickerSelectedPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(isLoading = false, slots = previewSlots, selectedSlotId = "s1"),
             onAction = {}
         )
@@ -307,7 +307,7 @@ private fun SlotPickerSelectedPreview() {
 @Composable
 private fun SlotPickerSwitchPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(
                 isLoading = false,
                 slots = previewSlots.map { if (it.id == "s3") it.copy(isMine = true) else it },
@@ -323,7 +323,7 @@ private fun SlotPickerSwitchPreview() {
 @Composable
 private fun SlotPickerBookingPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(isLoading = false, slots = previewSlots, selectedSlotId = "s1", isBooking = true),
             onAction = {}
         )
@@ -334,7 +334,7 @@ private fun SlotPickerBookingPreview() {
 @Composable
 private fun SlotPickerSwitchingOffPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(
                 isLoading = false,
                 slots = previewSlots.map { if (it.id == "s3") it.copy(isMine = true) else it },
@@ -350,7 +350,7 @@ private fun SlotPickerSwitchingOffPreview() {
 @Composable
 private fun SlotPickerInterviewPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(
                 kind = SlotKind.INTERVIEW,
                 isLoading = false,
@@ -365,7 +365,7 @@ private fun SlotPickerInterviewPreview() {
 @Composable
 private fun SlotPickerEmptyPreview() {
     InnogeeksTheme {
-        SlotPickerContent(state = SlotPickerState(isLoading = false), onAction = {})
+        SlotPickerScreen(state = SlotPickerState(isLoading = false), onAction = {})
     }
 }
 
@@ -373,9 +373,46 @@ private fun SlotPickerEmptyPreview() {
 @Composable
 private fun SlotPickerErrorPreview() {
     InnogeeksTheme {
-        SlotPickerContent(
+        SlotPickerScreen(
             state = SlotPickerState(isLoading = false, error = UiText.DynamicString("Network error")),
             onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SlotCardDefaultPreview() {
+    InnogeeksTheme { SlotCard(slot = previewSlots[0], isSelected = false, enabled = true, onClick = {}) }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SlotCardSelectedPreview() {
+    InnogeeksTheme { SlotCard(slot = previewSlots[0], isSelected = true, enabled = true, onClick = {}) }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SlotCardFullPreview() {
+    InnogeeksTheme { SlotCard(slot = previewSlots[1], isSelected = false, enabled = false, onClick = {}) }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SlotCardMinePreview() {
+    InnogeeksTheme { SlotCard(slot = previewSlots[2].copy(isMine = true), isSelected = false, enabled = true, onClick = {}) }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SlotCardWithLocationPreview() {
+    InnogeeksTheme {
+        SlotCard(
+            slot = previewSlots[0].copy(location = "Room 204, Innovation Block"),
+            isSelected = false,
+            enabled = true,
+            onClick = {}
         )
     }
 }

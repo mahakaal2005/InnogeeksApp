@@ -6,8 +6,8 @@ import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.mapper.toUiText
 import com.example.innogeeks.feature_recruitment.domain.model.SlotBookingFailure
 import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
-import com.example.innogeeks.feature_recruitment.domain.use_case.BookSlotUseCase
 import com.example.innogeeks.feature_recruitment.domain.use_case.GetSlotsUseCase
+import com.example.innogeeks.feature_recruitment.domain.use_case.SubmitSlotBookingUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class SlotPickerViewModel(
     private val kind: SlotKind,
     private val getSlotsUseCase: GetSlotsUseCase,
-    private val bookSlotUseCase: BookSlotUseCase
+    private val submitSlotBookingUseCase: SubmitSlotBookingUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SlotPickerState(kind = kind))
@@ -78,7 +78,7 @@ class SlotPickerViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isBooking = true) }
-            when (val result = bookSlotUseCase(kind, slotId)) {
+            when (val result = submitSlotBookingUseCase(kind, slotId)) {
                 is Result.Success -> {
                     _state.update { it.copy(isBooking = false) }
                     _events.send(SlotPickerEvent.BookingConfirmed)

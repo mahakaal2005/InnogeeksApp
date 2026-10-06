@@ -1,8 +1,10 @@
 package com.example.innogeeks.feature_recruitment.presentation.slotpicker
 
+import androidx.compose.runtime.Stable
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.feature_recruitment.domain.model.SlotKind
 
+@Stable
 data class SlotPickerState(
     val kind: SlotKind = SlotKind.TEST,
     val isLoading: Boolean = true,
