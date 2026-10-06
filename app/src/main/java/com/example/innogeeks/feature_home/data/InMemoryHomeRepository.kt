@@ -25,16 +25,16 @@ class InMemoryHomeRepository : HomeRepository {
         return Result.success(
             listOf(
                 DomainPreview(
-                    id = "webd",
-                    name = "Web Dev",
-                    wheelLabel = "WEB D",
-                    blurb = "Full-stack crews building the club's own platforms."
-                ),
-                DomainPreview(
                     id = "appd",
                     name = "App Dev",
                     wheelLabel = "APP D",
                     blurb = "Native & cross-platform builders shipping Android and iOS apps."
+                ),
+                DomainPreview(
+                    id = "webd",
+                    name = "Web Dev",
+                    wheelLabel = "WEB D",
+                    blurb = "Full-stack crews building the club's own platforms."
                 ),
                 DomainPreview(
                     id = "ml",

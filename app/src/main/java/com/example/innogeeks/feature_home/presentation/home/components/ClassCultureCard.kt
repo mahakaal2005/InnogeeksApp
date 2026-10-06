@@ -2,6 +2,7 @@ package com.example.innogeeks.feature_home.presentation.home.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -11,8 +12,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +44,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,11 +60,16 @@ import com.example.innogeeks.ui.theme.bodyFontFamily
 import com.example.innogeeks.ui.theme.displayFontFamily
 import edu.kiet.innogeeks.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val AUTO_ADVANCE_MS = 4200L
 // One easing for every photo move — slow and settled, no springy overshoot.
 private val PHOTO_MOTION = tween<Float>(650)
 private val PHOTO_MOTION_DP = tween<Dp>(650)
+// How far a swipe must travel before it counts as a page change, vs. springing back.
+private val SWIPE_COMMIT_THRESHOLD = 56.dp
+// How far the whole card is allowed to tug with a finger before it feels loose.
+private val SWIPE_DRAG_LIMIT = 28.dp
 
 // Depth -1 is the photo flying off the front, 0 is the front, 3 is a hidden photo waiting at the back.
 private data class StackPose(val rotation: Float, val scale: Float, val offsetX: Dp, val alpha: Float)
@@ -85,8 +92,14 @@ fun ClassCultureCard(
 
     var activeIndex by remember { mutableIntStateOf(0) }
     var isPressed by remember { mutableStateOf(false) }
+    val dragOffset = remember { Animatable(0f) }
+    // Animatable's suspend functions can't be called directly from the gesture-detector's
+    // restricted scope, so drag updates are launched on this instead.
+    val dragScope = rememberCoroutineScope()
 
-    LaunchedEffect(isPressed, moments.size) {
+    // Keying on activeIndex too means a manual swipe restarts the same wait, so auto-advance
+    // never fires right on top of it.
+    LaunchedEffect(isPressed, activeIndex, moments.size) {
         if (isPressed) return@LaunchedEffect
         while (true) {
             delay(AUTO_ADVANCE_MS)
@@ -97,20 +110,43 @@ fun ClassCultureCard(
     ClassCultureCardContent(
         moments = moments,
         activeIndex = activeIndex,
+        dragOffsetPx = dragOffset.value,
         modifier = modifier
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
+            .pointerInput(moments.size) {
+                val commitThresholdPx = SWIPE_COMMIT_THRESHOLD.toPx()
+                val dragLimitPx = SWIPE_DRAG_LIMIT.toPx()
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    isPressed = true
+                    var totalDrag = 0f
+                    var isDragging = false
                     while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        isPressed = event.changes.any { it.pressed }
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (!change.pressed) break
+                        val delta = change.positionChange().x
+                        if (!isDragging && kotlin.math.abs(totalDrag + delta) > viewConfiguration.touchSlop) {
+                            isDragging = true
+                        }
+                        if (isDragging) {
+                            totalDrag += delta
+                            change.consume()
+                            val target = totalDrag.coerceIn(-dragLimitPx, dragLimitPx)
+                            dragScope.launch { dragOffset.snapTo(target) }
+                        }
+                    }
+                    isPressed = false
+                    if (isDragging) {
+                        when {
+                            totalDrag <= -commitThresholdPx -> activeIndex = (activeIndex + 1).mod(moments.size)
+                            totalDrag >= commitThresholdPx -> activeIndex = (activeIndex - 1).mod(moments.size)
+                        }
+                        dragScope.launch { dragOffset.animateTo(0f, tween(300)) }
+                    } else {
+                        onMomentClick(moments[activeIndex])
                     }
                 }
             }
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = { onMomentClick(moments[activeIndex]) }
-            )
     )
 }
 
@@ -118,6 +154,7 @@ fun ClassCultureCard(
 private fun ClassCultureCardContent(
     moments: List<CultureMoment>,
     activeIndex: Int,
+    dragOffsetPx: Float = 0f,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -128,6 +165,8 @@ private fun ClassCultureCardContent(
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
             .height(196.dp)
+            // The little rubber-band tug while swiping — photos and text move together.
+            .graphicsLayer { translationX = dragOffsetPx }
             .clip(RoundedCornerShape(20.dp))
             .background(scheme.surfaceContainerLowest)
             .border(1.dp, scheme.outlineVariant, RoundedCornerShape(20.dp)),
