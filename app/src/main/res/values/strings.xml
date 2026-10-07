@@ -221,7 +221,11 @@
     <string name="resources_all">All</string>
     <string name="resources_did_you_mean">Did you mean</string>
     <string name="resources_no_matches">No matches for \"%1$s\".</string>
-    <string name="resources_type_group">%1$ss</string>
+    <string name="resource_group_link">Links</string>
+    <string name="resource_group_pdf">PDFs</string>
+    <string name="resource_group_video">Videos</string>
+    <string name="resource_group_notes">Notes</string>
+    <string name="resource_group_github">GitHub</string>
     <string name="resources_summary">%1$s · %2$d types</string>
     <string name="resources_types">Types</string>
     <plurals name="resources_count">

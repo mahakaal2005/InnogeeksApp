@@ -18,6 +18,17 @@ internal fun ResourceType.label(): String = stringResource(
     }
 )
 
+@Composable
+internal fun ResourceType.groupLabel(): String = stringResource(
+    when (this) {
+        ResourceType.LINK -> R.string.resource_group_link
+        ResourceType.PDF -> R.string.resource_group_pdf
+        ResourceType.VIDEO -> R.string.resource_group_video
+        ResourceType.NOTES -> R.string.resource_group_notes
+        ResourceType.GITHUB -> R.string.resource_group_github
+    }
+)
+
 internal fun ResourceType.accentColor(): Color = when (this) {
     ResourceType.LINK -> Color(0xFF6CD4F3)
     ResourceType.PDF -> Color(0xFFFF8A78)

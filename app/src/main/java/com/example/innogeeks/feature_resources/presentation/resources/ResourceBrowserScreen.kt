@@ -49,6 +49,7 @@ import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceSearchBar
 import com.example.innogeeks.feature_resources.presentation.resources.components.accentColor
 import com.example.innogeeks.feature_resources.presentation.resources.components.domainIconRes
+import com.example.innogeeks.feature_resources.presentation.resources.components.groupLabel
 import com.example.innogeeks.feature_resources.presentation.resources.components.label
 import com.example.innogeeks.feature_resources.presentation.resources.components.suggestResources
 import com.example.innogeeks.ui.theme.InnogeeksTheme
@@ -209,7 +210,7 @@ fun ResourceBrowserScreen(
                     val group = visible.filter { it.type == type }
                     if (group.isNotEmpty()) {
                         Column(modifier = Modifier.padding(bottom = 14.dp)) {
-                            SectionLabel(stringResource(R.string.resources_type_group, type.label()))
+                            SectionLabel(type.groupLabel())
                             group.forEach { resource ->
                                 ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
                             }
