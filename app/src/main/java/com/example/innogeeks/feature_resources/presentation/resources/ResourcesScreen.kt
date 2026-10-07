@@ -74,7 +74,8 @@ fun ResourcesRoot(
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is ResourcesEvent.OpenUrl -> uriHandler.openUri(event.url)
+            // A bad link or missing browser must not crash the app.
+            is ResourcesEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
         }
     }
 

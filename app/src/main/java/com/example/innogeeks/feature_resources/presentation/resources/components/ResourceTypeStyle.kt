@@ -56,6 +56,5 @@ internal fun domainIconRes(domainId: String): Int = when (domainId) {
     "appd" -> R.drawable.ic_domain_appd
     "ml" -> R.drawable.ic_domain_ml
     "arvr" -> R.drawable.ic_domain_arvr
-    "blockchain" -> R.drawable.ic_domain_blockchain
     else -> R.drawable.ic_domain_iot
 }
