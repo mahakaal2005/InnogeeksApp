@@ -4,6 +4,7 @@ import edu.kiet.innogeeks.BuildConfig
 import com.example.innogeeks.core.domain.session.SessionRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpCallValidator
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -12,7 +13,10 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -44,6 +48,15 @@ object HttpClientFactory {
                 bearer {
                     loadTokens { sessionRepository.currentAccessToken()?.let { BearerTokens(accessToken = it, refreshToken = "") } }
                     refreshTokens { sessionRepository.currentAccessToken()?.let { BearerTokens(accessToken = it, refreshToken = "") } }
+                }
+            }
+
+            // Contract §9: a 401 on a call that carried a token means it is dead, so drop to guest (MainScaffold resets to Home).
+            install(HttpCallValidator) {
+                validateResponse { response ->
+                    if (response.status == HttpStatusCode.Unauthorized && response.request.headers.contains(HttpHeaders.Authorization)) {
+                        sessionRepository.signOut()
+                    }
                 }
             }
 
