@@ -29,8 +29,8 @@ android {
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 5
-        versionName = "4.0.2"
+        versionCode = 6
+        versionName = "4.1.0"
 
         buildConfigField("String", "BASE_URL", "\"$apiBaseUrl\"")
 
