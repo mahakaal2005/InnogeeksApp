@@ -11,6 +11,7 @@ import com.example.innogeeks.feature_profile.domain.use_case.GetProfileUseCase
 import com.example.innogeeks.feature_profile.domain.use_case.RequestAccountDeletionUseCase
 import com.example.innogeeks.feature_profile.domain.use_case.UpdateProfileUseCase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,10 +34,21 @@ class ProfileViewModel(
     private val _events = Channel<ProfileEvent>()
     val events = _events.receiveAsFlow()
 
+    private var loadJob: Job? = null
+    private var signedInEmail: String? = null
+
     init {
         viewModelScope.launch {
             sessionRepository.session.collect { session ->
-                _state.update { it.copy(session = session) }
+                val email = (session as? Session.Authenticated)?.collegeEmail
+                if (email != signedInEmail) {
+                    // A different user (or none) must never see the previous user's cached profile.
+                    signedInEmail = email
+                    loadJob?.cancel()
+                    _state.value = ProfileState(session = session)
+                } else {
+                    _state.update { it.copy(session = session) }
+                }
                 if (session is Session.Authenticated && _state.value.profile == null) {
                     loadProfile()
                 }
@@ -141,7 +153,8 @@ class ProfileViewModel(
     }
 
     private fun loadProfile() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.update { it.copy(isLoadingProfile = true, profileError = null) }
             when (val result = getProfileUseCase()) {
                 is Result.Success -> _state.update {
