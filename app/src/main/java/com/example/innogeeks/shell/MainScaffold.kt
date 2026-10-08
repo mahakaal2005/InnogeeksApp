@@ -64,7 +64,7 @@ import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.components.AuthGlowBackground
 import com.example.innogeeks.core.presentation.components.liquidGlass
-import com.example.innogeeks.feature_attendance.presentation.myattendance.MyAttendanceRoot
+import com.example.innogeeks.feature_attendance.presentation.navigation.AttendanceRoot
 import com.example.innogeeks.feature_domains.presentation.domains.DomainsRoot
 import com.example.innogeeks.feature_events.presentation.events.EventsRoot
 import com.example.innogeeks.feature_profile.presentation.profile.ProfileRoot
@@ -230,7 +230,11 @@ fun MainScaffold(
                                 onNavigateToProfile = { selectedTab = 3 },
                                 onNavigateToAuth = onNavigateToAuth
                             )
-                            1 -> MyAttendanceRoot(hazeState = hazeState)
+                            1 -> AttendanceRoot(
+                                hazeState = hazeState,
+                                canManage = session.role == UserRole.COORDINATOR || session.role == UserRole.ADMIN,
+                                onBottomBarVisibilityChanged = { showBottomBar = it }
+                            )
                             2 -> ResourcesRoot(hazeState = hazeState)
                             3 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
                         }
