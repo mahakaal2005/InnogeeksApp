@@ -16,6 +16,7 @@ import com.example.innogeeks.feature_profile.domain.di.profileDomainModule
 import com.example.innogeeks.feature_profile.presentation.di.profilePresentationModule
 import com.example.innogeeks.feature_attendance.data.di.attendanceDataModule
 import com.example.innogeeks.feature_attendance.domain.di.attendanceDomainModule
+import com.example.innogeeks.feature_attendance.presentation.di.attendancePresentationModule
 import com.example.innogeeks.feature_recruitment.data.di.recruitmentDataModule
 import com.example.innogeeks.feature_recruitment.domain.di.recruitmentDomainModule
 import com.example.innogeeks.feature_recruitment.presentation.di.recruitmentPresentationModule
@@ -44,6 +45,7 @@ class InnogeeksApp : Application(){
                 // feature: attendance
                 attendanceDataModule,
                 attendanceDomainModule,
+                attendancePresentationModule,
                 // feature: domains
                 domainsDataModule,
                 domainsPresentationModule,

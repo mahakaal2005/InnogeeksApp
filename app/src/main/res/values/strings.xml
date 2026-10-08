@@ -239,4 +239,15 @@
     <string name="common_collapse">Collapse</string>
     <string name="common_expand">Expand</string>
     <string name="home_sessions_moments">SESSIONS &amp; MOMENTS</string>
+    <string name="attendance_title">Attendance</string>
+    <string name="attendance_sessions_count">%1$d of %2$d sessions</string>
+    <string name="attendance_no_sessions_title">No sessions yet</string>
+    <string name="attendance_empty_body">Your coordinator marks attendance at each session. Your first one will show up here.</string>
+    <string name="attendance_last_present">You were at your last session.</string>
+    <string name="attendance_last_missed_session">You missed your last session.</string>
+    <string name="attendance_last_missed_on">Last missed %1$s.</string>
+    <string name="attendance_no_misses">No misses yet.</string>
+    <string name="attendance_present">Present</string>
+    <string name="attendance_missed">Missed</string>
+    <string name="attendance_strip_cd">%1$s, %2$s</string>
 </resources>
