@@ -235,7 +235,8 @@ fun MainScaffold(
                                 canManage = session.role == UserRole.COORDINATOR || session.role == UserRole.ADMIN,
                                 onBottomBarVisibilityChanged = { showBottomBar = it }
                             )
-                            2 -> ResourcesRoot(hazeState = hazeState)
+                            // Members land on their own domain's feed; Back reaches the picker.
+                            2 -> ResourcesRoot(hazeState = hazeState, initialDomainId = session.domain?.contentDomainId)
                             3 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
                         }
                     } else if (tabMode == TabMode.REJECTED) {

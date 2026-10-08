@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +67,7 @@ import androidx.compose.ui.res.pluralStringResource
 @Composable
 fun ResourcesRoot(
     hazeState: HazeState,
+    initialDomainId: String? = null, // a member's own domain: the tab opens straight on its feed
     viewModel: ResourcesViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -77,6 +79,12 @@ fun ResourcesRoot(
             // A bad link or missing browser must not crash the app.
             is ResourcesEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
         }
+    }
+
+    // The picker stays underneath, so Back still reaches the other domains. Waits for the domains to load.
+    val ownDomainLoaded = initialDomainId != null && state.domains.any { it.id == initialDomainId }
+    LaunchedEffect(initialDomainId, ownDomainLoaded) {
+        if (ownDomainLoaded) navController.navigate(ResourceBrowserRoute(initialDomainId!!))
     }
 
     NavHost(
