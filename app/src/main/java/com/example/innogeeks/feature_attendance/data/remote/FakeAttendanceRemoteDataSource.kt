@@ -31,6 +31,17 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
         FakeMember("m7", "Dev Patel", "MEMBER"),
         FakeMember("c1", "Priya Nair", "COORDINATOR")
     )
+    // Session indexes each member missed, varied so the roster's attendance sort has something to show.
+    private val missedSessions = mapOf(
+        MY_ID to setOf(0, 4),
+        "m2" to emptySet(),
+        "m3" to setOf(0, 1, 3),
+        "m4" to setOf(2),
+        "m5" to setOf(1, 3),
+        "m6" to setOf(4),
+        "m7" to setOf(0, 1, 2, 4),
+        "c1" to emptySet()
+    )
     private val sessions = mutableListOf<FakeSession>()
     private val marks = mutableMapOf<Pair<String, String>, String>() // (sessionId, accountId) -> status
 
@@ -41,9 +52,8 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
             sessions += FakeSession(id, "Weekly sync #${s + 1}", date)
             // The latest session is still unmarked, like a coordinator who hasn't got to it yet.
             if (s == dates.lastIndex) return@forEachIndexed
-            members.forEachIndexed { m, member ->
-                // Deterministic mix: every member misses a different session or two.
-                val absent = (s + m) % 4 == 0
+            members.forEach { member ->
+                val absent = s in missedSessions.getValue(member.id)
                 marks[id to member.id] = if (absent) "ABSENT" else "PRESENT"
             }
         }

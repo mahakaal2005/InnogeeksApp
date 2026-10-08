@@ -50,6 +50,7 @@ import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.core.presentation.mapper.toUiText
 import com.example.innogeeks.feature_attendance.domain.model.AttendanceSummary
+import com.example.innogeeks.feature_attendance.presentation.components.AttendanceHeader
 import com.example.innogeeks.feature_attendance.presentation.myattendance.components.AttendanceMonthSection
 import com.example.innogeeks.feature_attendance.presentation.myattendance.components.AttendanceSummaryCard
 import com.example.innogeeks.feature_attendance.presentation.myattendance.components.AttendanceRecordRow
@@ -63,12 +64,13 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MyAttendanceRoot(
     hazeState: HazeState,
+    topContent: @Composable () -> Unit = {},
     viewModel: MyAttendanceViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     // The ViewModel outlives the tab, so coming back needs its own reload.
     LaunchedEffect(Unit) { viewModel.onAction(MyAttendanceAction.OnScreenShown) }
-    MyAttendanceScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction)
+    MyAttendanceScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction, topContent = topContent)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +78,8 @@ fun MyAttendanceRoot(
 fun MyAttendanceScreen(
     state: MyAttendanceState,
     hazeState: HazeState,
-    onAction: (MyAttendanceAction) -> Unit
+    onAction: (MyAttendanceAction) -> Unit,
+    topContent: @Composable () -> Unit = {} // e.g. the coordinator's view switch
 ) {
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
@@ -92,6 +95,7 @@ fun MyAttendanceScreen(
             contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 110.dp)
         ) {
             item { AttendanceHeader(domain = state.domain) }
+            item { topContent() }
 
             when {
                 state.isLoading -> item { AttendanceSkeleton() }
@@ -172,37 +176,6 @@ private fun SectionHeader(title: String, actionLabel: String? = null, onActionCl
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onActionClick)
-            )
-        }
-    }
-}
-
-@Composable
-private fun AttendanceHeader(domain: UserDomain?) {
-    val scheme = MaterialTheme.colorScheme
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = stringResource(R.string.attendance_title),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = scheme.onSurface
-        )
-        if (domain != null) {
-            Text(
-                text = domain.toUiText().asString().uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = scheme.primary,
-                modifier = Modifier
-                    .border(1.dp, scheme.primary.copy(alpha = 0.4f), CircleShape)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
             )
         }
     }
