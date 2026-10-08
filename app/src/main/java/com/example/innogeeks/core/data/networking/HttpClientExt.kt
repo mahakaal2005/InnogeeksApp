@@ -11,9 +11,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpMethod
 import io.ktor.util.network.UnresolvedAddressException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -125,9 +127,22 @@ suspend inline fun <reified T> responseToResult(
 suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.postEnveloped(
     route: String,
     body: Request
+): Result<Response, ApiFailure> = sendEnveloped(HttpMethod.Post, route, body)
+
+// Envelope-aware PUT, for idempotent writes such as replacing a set of marks.
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.putEnveloped(
+    route: String,
+    body: Request
+): Result<Response, ApiFailure> = sendEnveloped(HttpMethod.Put, route, body)
+
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.sendEnveloped(
+    httpMethod: HttpMethod,
+    route: String,
+    body: Request
 ): Result<Response, ApiFailure> {
     val response = try {
-        post {
+        request {
+            method = httpMethod
             url(constructRoute(route))
             setBody(body)
         }
@@ -179,4 +194,4 @@ fun constructRoute(route: String): String {
         route.startsWith("/") -> BuildConfig.BASE_URL + route
         else -> BuildConfig.BASE_URL + "/$route"
     }
-}
+}

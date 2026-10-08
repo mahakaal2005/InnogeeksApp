@@ -14,6 +14,8 @@ import com.example.innogeeks.feature_onboarding.presentation.onboardingPresentat
 import com.example.innogeeks.feature_profile.data.di.profileDataModule
 import com.example.innogeeks.feature_profile.domain.di.profileDomainModule
 import com.example.innogeeks.feature_profile.presentation.di.profilePresentationModule
+import com.example.innogeeks.feature_attendance.data.di.attendanceDataModule
+import com.example.innogeeks.feature_attendance.domain.di.attendanceDomainModule
 import com.example.innogeeks.feature_recruitment.data.di.recruitmentDataModule
 import com.example.innogeeks.feature_recruitment.domain.di.recruitmentDomainModule
 import com.example.innogeeks.feature_recruitment.presentation.di.recruitmentPresentationModule
@@ -39,6 +41,9 @@ class InnogeeksApp : Application(){
                 // feature: home
                 homeDataModule,
                 homePresentationModule,
+                // feature: attendance
+                attendanceDataModule,
+                attendanceDomainModule,
                 // feature: domains
                 domainsDataModule,
                 domainsPresentationModule,
@@ -59,4 +64,4 @@ class InnogeeksApp : Application(){
             )
         }
     }
-}
+}
