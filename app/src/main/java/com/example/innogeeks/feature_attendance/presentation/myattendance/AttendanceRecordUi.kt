@@ -5,6 +5,7 @@ import com.example.innogeeks.feature_attendance.domain.model.AttendanceStatus
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 
 data class AttendanceRecordUi(
@@ -30,7 +31,7 @@ fun AttendanceRecord.toAttendanceRecordUi(): AttendanceRecordUi = AttendanceReco
 private val weekdayFormat = LocalDate.Format { dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED) }
 
 private val shortDateFormat = LocalDate.Format {
-    dayOfMonth()
+    dayOfMonth(Padding.NONE)
     char(' ')
     monthName(MonthNames.ENGLISH_ABBREVIATED)
 }
