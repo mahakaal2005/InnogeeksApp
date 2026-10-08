@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -63,6 +64,7 @@ import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.components.AuthGlowBackground
 import com.example.innogeeks.core.presentation.components.liquidGlass
+import com.example.innogeeks.feature_attendance.presentation.myattendance.MyAttendanceRoot
 import com.example.innogeeks.feature_domains.presentation.domains.DomainsRoot
 import com.example.innogeeks.feature_events.presentation.events.EventsRoot
 import com.example.innogeeks.feature_profile.presentation.profile.ProfileRoot
@@ -117,14 +119,22 @@ private val rejectedTabs = listOf(
     BottomNavTab(R.string.common_profile, Icons.Filled.Person),
 )
 
-// Single place role -> tab-set is decided. Phase 4's actual Member/Coordinator/Admin nav isn't
-// designed yet, so they reuse registeredTabs for now — update just this function when it is.
+// MEMBER, COORDINATOR and ADMIN: they already passed recruitment, so no Tracker or Events.
+private val memberTabs = listOf(
+    BottomNavTab(R.string.common_home, Icons.Filled.Home),
+    BottomNavTab(R.string.common_attendance, Icons.Filled.EventAvailable),
+    BottomNavTab(R.string.common_resources, Icons.Filled.FolderOpen),
+    BottomNavTab(R.string.common_profile, Icons.Filled.Person),
+)
+
+// Single place role -> tab-set is decided.
 private fun UserRole.tabs(): List<BottomNavTab> = when (this) {
-    UserRole.REGISTERED, UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> registeredTabs
+    UserRole.REGISTERED -> registeredTabs
+    UserRole.MEMBER, UserRole.COORDINATOR, UserRole.ADMIN -> memberTabs
 }
 
 // This key drives the reset-to-0 effect below, since the composable survives login, logout and decision changes in place.
-private enum class TabMode { GUEST, AUTHENTICATED, REJECTED }
+private enum class TabMode { GUEST, AUTHENTICATED, MEMBER, REJECTED }
 
 @Composable
 fun MainScaffold(
@@ -162,6 +172,8 @@ fun MainScaffold(
         session is Session.Guest -> TabMode.GUEST
         session is Session.Authenticated && session.role == UserRole.REGISTERED &&
             decision == Decision.REJECTED -> TabMode.REJECTED
+        // A promotion from REGISTERED swaps the tab set, so it must reset the selected index too.
+        session is Session.Authenticated && session.role != UserRole.REGISTERED -> TabMode.MEMBER
         else -> TabMode.AUTHENTICATED
     }
 
@@ -178,7 +190,7 @@ fun MainScaffold(
     val tabs = when (tabMode) {
         TabMode.GUEST -> guestTabs
         TabMode.REJECTED -> rejectedTabs
-        TabMode.AUTHENTICATED -> (session as Session.Authenticated).role.tabs()
+        TabMode.AUTHENTICATED, TabMode.MEMBER -> (session as Session.Authenticated).role.tabs()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -209,7 +221,20 @@ fun MainScaffold(
                     }
                 }
                 is Session.Authenticated -> {
-                    if (tabMode == TabMode.REJECTED) {
+                    if (tabMode == TabMode.MEMBER) {
+                        when (selectedTab) {
+                            // Interim: the Member Home dashboard is Phase 4.4, so this reuses the public Home.
+                            0 -> HomeRoot(
+                                hazeState = hazeState,
+                                session = session,
+                                onNavigateToProfile = { selectedTab = 3 },
+                                onNavigateToAuth = onNavigateToAuth
+                            )
+                            1 -> MyAttendanceRoot(hazeState = hazeState)
+                            2 -> ResourcesRoot(hazeState = hazeState)
+                            3 -> ProfileRoot(hazeState = hazeState, onNavigateToAuth = onNavigateToAuth)
+                        }
+                    } else if (tabMode == TabMode.REJECTED) {
                         when (selectedTab) {
                             0 -> ResourcesRoot(hazeState = hazeState)
                             1 -> DomainsRoot(hazeState = hazeState, onBottomBarVisibilityChanged = { showBottomBar = it })
