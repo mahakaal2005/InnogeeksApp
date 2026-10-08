@@ -37,7 +37,8 @@ data class RosterEntry(
     val accountId: String,
     val fullName: String,
     val role: UserRole,
-    val status: AttendanceStatus?
+    val status: AttendanceStatus?,
+    val attendancePercent: Int? // excludes this session; null when the person has no marks yet
 )
 
 data class SessionRoster(

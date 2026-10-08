@@ -50,7 +50,8 @@ fun RosterEntryDto.toRosterEntry(): RosterEntry = RosterEntry(
     accountId = accountId,
     fullName = fullName,
     role = UserRole.entries.firstOrNull { it.name == role } ?: UserRole.MEMBER,
-    status = status?.toAttendanceStatus()
+    status = status?.toAttendanceStatus(),
+    attendancePercent = attendancePercent
 )
 
 fun AttendanceMark.toMarkDto(): MarkDto = MarkDto(accountId, status.name)

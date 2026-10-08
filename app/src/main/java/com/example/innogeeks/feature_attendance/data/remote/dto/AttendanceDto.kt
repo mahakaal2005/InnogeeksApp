@@ -66,7 +66,8 @@ data class RosterEntryDto(
     val accountId: String,
     val fullName: String,
     val role: String,
-    val status: String? = null
+    val status: String? = null,
+    val attendancePercent: Int? = null // person's own %, excluding this session; null with no marks
 )
 
 // POST /attendance/sessions body

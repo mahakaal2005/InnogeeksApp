@@ -103,8 +103,16 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
 
     private fun rosterOf(session: FakeSession) = SessionRosterDto(
         session = SessionHeaderDto(session.id, session.title, session.date),
-        roster = members.map { RosterEntryDto(it.id, it.name, it.role, marks[session.id to it.id]) }
+        roster = members.map {
+            RosterEntryDto(it.id, it.name, it.role, marks[session.id to it.id], percentExcluding(it.id, session.id))
+        }
     )
+
+    // Own attendance over every other session this person was marked in, like the real server.
+    private fun percentExcluding(accountId: String, sessionId: String): Int? {
+        val others = sessions.filter { it.id != sessionId }.mapNotNull { marks[it.id to accountId] }
+        return if (others.isEmpty()) null else others.count { it == "PRESENT" } * 100 / others.size
+    }
 
     private companion object {
         const val MY_ID = "me"
