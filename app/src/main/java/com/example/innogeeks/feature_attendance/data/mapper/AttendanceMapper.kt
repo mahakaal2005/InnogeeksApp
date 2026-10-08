@@ -25,7 +25,8 @@ fun MyAttendanceDto.toMyAttendance(): MyAttendance = MyAttendance(
 // Null for an unknown status or a bad date, so one odd row can't break the whole list.
 fun AttendanceRecordDto.toAttendanceRecord(): AttendanceRecord? {
     val parsedDate = date.toLocalDateOrNull() ?: return null
-    val parsedStatus = status.toAttendanceStatus() ?: return null
+    // A missing status is an unmarked session; only a non-null unknown string drops the row.
+    val parsedStatus = if (status == null) null else status.toAttendanceStatus() ?: return null
     return AttendanceRecord(sessionId, title, parsedDate, parsedStatus)
 }
 

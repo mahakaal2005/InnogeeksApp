@@ -24,7 +24,7 @@ data class AttendanceRecordDto(
     val sessionId: String,
     val title: String,
     val date: String, // ISO local date, e.g. 2026-10-07
-    val status: String
+    val status: String? = null // null while the session is unmarked
 )
 
 // GET /attendance/sessions

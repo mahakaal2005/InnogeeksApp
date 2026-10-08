@@ -39,6 +39,8 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
         dates.forEachIndexed { s, date ->
             val id = "s${s + 1}"
             sessions += FakeSession(id, "Weekly sync #${s + 1}", date)
+            // The latest session is still unmarked, like a coordinator who hasn't got to it yet.
+            if (s == dates.lastIndex) return@forEachIndexed
             members.forEachIndexed { m, member ->
                 // Deterministic mix: every member misses a different session or two.
                 val absent = (s + m) % 4 == 0
@@ -49,12 +51,14 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
 
     override suspend fun getMyAttendance(): Result<MyAttendanceDto, DataError.Network> {
         delay(600)
-        val records = sessions.sortedByDescending { it.date }.mapNotNull { session ->
-            marks[session.id to MY_ID]?.let { AttendanceRecordDto(session.id, session.title, session.date, it) }
+        val records = sessions.sortedByDescending { it.date }.map { session ->
+            AttendanceRecordDto(session.id, session.title, session.date, marks[session.id to MY_ID])
         }
+        // The summary counts marked sessions only, like the real server.
+        val marked = records.count { it.status != null }
         val present = records.count { it.status == "PRESENT" }
-        val percent = if (records.isEmpty()) 0 else present * 100 / records.size
-        return Result.Success(MyAttendanceDto(AttendanceSummaryDto(records.size, present, percent), records))
+        val percent = if (marked == 0) 0 else present * 100 / marked
+        return Result.Success(MyAttendanceDto(AttendanceSummaryDto(marked, present, percent), records))
     }
 
     override suspend fun getDomainSessions(): Result<SessionListDto, DataError.Network> {

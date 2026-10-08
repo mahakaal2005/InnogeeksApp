@@ -5,12 +5,12 @@ import kotlinx.datetime.LocalDate
 
 enum class AttendanceStatus { PRESENT, ABSENT }
 
-// One session the signed-in user was marked in.
+// One past session of the user's domain; status is null until the coordinator marks it.
 data class AttendanceRecord(
     val sessionId: String,
     val title: String,
     val date: LocalDate,
-    val status: AttendanceStatus
+    val status: AttendanceStatus?
 )
 
 data class AttendanceSummary(

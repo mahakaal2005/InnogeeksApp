@@ -3,32 +3,31 @@ package com.example.innogeeks.feature_attendance.presentation.myattendance
 import com.example.innogeeks.feature_attendance.domain.model.AttendanceRecord
 import com.example.innogeeks.feature_attendance.domain.model.AttendanceStatus
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 
+enum class RecordStatus { PRESENT, MISSED, UNMARKED }
+
 data class AttendanceRecordUi(
     val sessionId: String,
     val title: String,
-    val isPresent: Boolean,
-    val dayOfMonth: String, // "7"
-    val weekday: String, // "Wed"
-    val shortDate: String, // "7 Oct"
+    val status: RecordStatus,
+    val dateLabel: String, // "7 Oct"
     val monthLabel: String // "October 2026"
 )
 
 fun AttendanceRecord.toAttendanceRecordUi(): AttendanceRecordUi = AttendanceRecordUi(
     sessionId = sessionId,
     title = title,
-    isPresent = status == AttendanceStatus.PRESENT,
-    dayOfMonth = date.dayOfMonth.toString(),
-    weekday = weekdayFormat.format(date),
-    shortDate = shortDateFormat.format(date),
+    status = when (status) {
+        AttendanceStatus.PRESENT -> RecordStatus.PRESENT
+        AttendanceStatus.ABSENT -> RecordStatus.MISSED
+        null -> RecordStatus.UNMARKED
+    },
+    dateLabel = shortDateFormat.format(date),
     monthLabel = monthFormat.format(date)
 )
-
-private val weekdayFormat = LocalDate.Format { dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED) }
 
 private val shortDateFormat = LocalDate.Format {
     dayOfMonth(Padding.NONE)
