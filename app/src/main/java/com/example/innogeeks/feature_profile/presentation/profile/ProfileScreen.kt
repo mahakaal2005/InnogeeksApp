@@ -48,7 +48,10 @@ import com.example.innogeeks.core.presentation.components.ExpandableRow
 import com.example.innogeeks.core.presentation.components.GlassIntensity
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.core.presentation.components.liquidGlass
+import com.example.innogeeks.core.presentation.mapper.mascotRes
+import com.example.innogeeks.core.presentation.mapper.toUiText
 import com.example.innogeeks.feature_profile.presentation.profile.components.ProfileHero
+import com.example.innogeeks.feature_profile.presentation.profile.components.ProfilePassCard
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -287,12 +290,15 @@ private fun LazyListScope.registeredProfile(
     val profile = state.profile
 
     item {
-        ProfileHero(
+        ProfilePassCard(
             initials = (profile?.fullName ?: session.collegeEmail).toInitials(),
             name = profile?.fullName ?: session.collegeEmail.substringBefore('@'),
-            subtitle = session.collegeEmail,
-            roleChip = profile?.role?.replace('_', ' ') ?: stringResource(R.string.common_registered),
-            modifier = Modifier.padding(vertical = 6.dp)
+            email = session.collegeEmail,
+            roleLabel = session.role.toUiText().asString(),
+            domainName = session.domain?.toUiText()?.asString(),
+            mascot = session.domain?.mascotRes(),
+            // Top padding leaves room for the mascot that overhangs the card.
+            modifier = Modifier.padding(top = if (session.domain != null) 58.dp else 6.dp, bottom = 6.dp)
         )
     }
 
@@ -359,24 +365,20 @@ private fun LazyListScope.registeredProfile(
 
         item {
             ExpandableRow(
-                title = stringResource(R.string.profile_contact_club),
-                subtitle = listOfNotNull(
-                    profile.phone,
-                    profile.role.replace('_', ' ')
-                ).take(1).joinToString(" • ").ifEmpty { stringResource(R.string.profile_role_format, profile.role.replace('_', ' ')) },
+                title = stringResource(R.string.profile_contact),
+                subtitle = profile.phone ?: stringResource(R.string.profile_not_provided),
                 isExpanded = state.expandedSection == ProfileSection.CLUB,
                 onToggle = { onAction(ProfileAction.OnSectionToggled(ProfileSection.CLUB)) },
                 hazeState = hazeState,
                 leading = {
-                    IconChip(emoji = "🚀", background = MaterialTheme.colorScheme.secondaryContainer)
+                    IconChip(emoji = "📞", background = MaterialTheme.colorScheme.secondaryContainer)
                 }
             ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    profile.phone?.let { ProfileField(label = stringResource(R.string.profile_phone), value = it) }
-                    ProfileField(label = stringResource(R.string.profile_role), value = profile.role.replace('_', ' '))
+                Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                    ProfileField(
+                        label = stringResource(R.string.profile_phone),
+                        value = profile.phone ?: stringResource(R.string.profile_not_provided)
+                    )
                 }
             }
         }
@@ -798,7 +800,7 @@ private fun EditProfileCard(
 // Same stopgap as the Home top bar — the email local-part is the only initials source.
 private fun String.toInitials(): String =
     substringBefore('@')
-        .split('.', '_', '-')
+        .split('.', '_', '-', ' ')
         .filter { it.isNotBlank() }
         .take(2)
         .map { it.first().uppercaseChar() }
@@ -855,6 +857,33 @@ private fun ProfileScreenRegisteredExpandedPreview() {
                     year = 2,
                     role = "COORDINATOR",
                     domain = "ANDROID"
+                )
+            ),
+            hazeState = HazeState(),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun ProfileScreenMemberMlPreview() {
+    InnogeeksTheme {
+        ProfileScreen(
+            state = ProfileState(
+                session = Session.Authenticated(
+                    collegeEmail = "test.member@kiet.edu",
+                    role = UserRole.MEMBER,
+                    domain = UserDomain.ML
+                ),
+                profile = com.example.innogeeks.feature_profile.domain.model.StudentProfile(
+                    collegeEmail = "test.member@kiet.edu",
+                    fullName = "Test Member",
+                    phone = "+91 98765 43210",
+                    batch = "2024-28",
+                    year = 2,
+                    role = "MEMBER",
+                    domain = "ML"
                 )
             ),
             hazeState = HazeState(),

@@ -3,15 +3,12 @@ package com.example.innogeeks.feature_home.presentation.memberhome.components
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,12 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.innogeeks.core.domain.model.UserDomain
 import com.example.innogeeks.core.domain.model.UserRole
+import com.example.innogeeks.core.presentation.components.DashedDivider
+import com.example.innogeeks.core.presentation.components.passCardSurface
+import com.example.innogeeks.core.presentation.mapper.mascotRes
 import com.example.innogeeks.core.presentation.mapper.toUiText
 import com.example.innogeeks.feature_home.presentation.memberhome.AttendanceOverviewUi
 import com.example.innogeeks.feature_home.presentation.memberhome.HomeSessionUi
@@ -53,20 +47,17 @@ fun MemberPassCard(
     modifier: Modifier = Modifier
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    val shape = RoundedCornerShape(26.dp)
 
     Box(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(shape)
-                .background(Brush.linearGradient(passGradient()))
-                .border(1.dp, primary.copy(alpha = 0.35f), shape)
+                .passCardSurface()
                 .clickable(onClick = onClick)
                 .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp)
         ) {
             Text(
-                text = stringResource(R.string.member_home_innogeeks),
+                text = stringResource(R.string.pass_card_club_label),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 3.sp,
@@ -82,7 +73,7 @@ fun MemberPassCard(
                 modifier = Modifier.padding(top = 10.dp, end = 130.dp)
             )
             Text(
-                text = role.pillLabel(),
+                text = role.toUiText().asString(),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimary,
@@ -151,49 +142,6 @@ fun MemberPassCard(
                 .size(168.dp)
         )
     }
-}
-
-// A primary-tinted corner fading into the theme's own surface and background.
-@Composable
-private fun passGradient(): List<Color> {
-    val scheme = MaterialTheme.colorScheme
-    return listOf(scheme.primary.copy(alpha = 0.16f).compositeOver(scheme.surface), scheme.surfaceContainerLow, scheme.background)
-}
-
-@Composable
-private fun DashedDivider(modifier: Modifier = Modifier) {
-    val color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-    Spacer(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .drawBehind {
-                drawLine(
-                    color = color,
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, 0f),
-                    strokeWidth = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))
-                )
-            }
-    )
-}
-
-@Composable
-private fun UserRole.pillLabel(): String = stringResource(
-    when (this) {
-        UserRole.COORDINATOR -> R.string.member_home_role_coordinator
-        UserRole.ADMIN -> R.string.member_home_role_admin
-        else -> R.string.member_home_role_member
-    }
-)
-
-internal fun UserDomain.mascotRes(): Int = when (this) {
-    UserDomain.ANDROID -> R.drawable.ic_domain_appd
-    UserDomain.WEB -> R.drawable.ic_domain_webd
-    UserDomain.ML -> R.drawable.ic_domain_ml
-    UserDomain.IOT -> R.drawable.ic_domain_iot
-    UserDomain.AR_VR -> R.drawable.ic_domain_arvr
 }
 
 internal val previewSessions = listOf(
