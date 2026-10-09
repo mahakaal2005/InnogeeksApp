@@ -14,7 +14,7 @@ data class ResourcesState(
     val actionSheetFor: String? = null,
     val pendingRemovalIds: Set<String> = emptySet(), // hidden at once; deleted for real when the undo window closes
     val newIds: Set<String> = emptySet(),
-    val showTip: Boolean = true
+    val showTip: Boolean = false // off until the saved preference loads, so it never flashes
 ) {
     val visibleResources: List<ResourceItem> get() = resources.filterNot { it.id in pendingRemovalIds }
 }

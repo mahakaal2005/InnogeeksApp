@@ -1,5 +1,7 @@
 package com.example.innogeeks.feature_attendance.data.remote
 
+import android.content.Context
+import com.example.innogeeks.core.data.fake.FakeStore
 import com.example.innogeeks.core.domain.error.ApiFailure
 import com.example.innogeeks.core.domain.error.DataError
 import com.example.innogeeks.core.domain.util.Result
@@ -14,11 +16,25 @@ import com.example.innogeeks.feature_attendance.data.remote.dto.SessionListDto
 import com.example.innogeeks.feature_attendance.data.remote.dto.SessionRosterDto
 import com.example.innogeeks.feature_attendance.data.remote.dto.SubmitMarksRequestDto
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
 
-class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
+class FakeAttendanceRemoteDataSource(context: Context) : AttendanceRemoteDataSource {
 
     private data class FakeMember(val id: String, val name: String, val role: String)
+    @Serializable
     private data class FakeSession(val id: String, val title: String, val date: String)
+
+    @Serializable
+    private data class MarkEntry(val sessionId: String, val accountId: String, val status: String)
+
+    @Serializable
+    private data class Snapshot(val sessions: List<FakeSession>, val marks: List<MarkEntry>)
+
+    private val store = FakeStore(context)
+    private val loadLock = Mutex()
+    private var loaded = false
 
     // In-memory state so a dev run behaves like the server: marking "me" changes my percent.
     private val members = listOf(
@@ -63,7 +79,27 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
         }
     }
 
+    // The seed above is the starting point; a saved copy from an earlier run replaces it, so demo edits survive a restart.
+    private suspend fun ensureLoaded() = loadLock.withLock {
+        if (loaded) return@withLock
+        store.read(SNAPSHOT_FILE, Snapshot.serializer())?.let { snapshot ->
+            sessions.clear()
+            sessions += snapshot.sessions
+            marks.clear()
+            snapshot.marks.forEach { marks[it.sessionId to it.accountId] = it.status }
+        }
+        loaded = true
+    }
+
+    private suspend fun save() {
+        store.write(
+            SNAPSHOT_FILE, Snapshot.serializer(),
+            Snapshot(sessions.toList(), marks.map { (key, status) -> MarkEntry(key.first, key.second, status) })
+        )
+    }
+
     override suspend fun getMyAttendance(): Result<MyAttendanceDto, DataError.Network> {
+        ensureLoaded()
         delay(600)
         val records = sessions.sortedByDescending { it.date }.map { session ->
             AttendanceRecordDto(session.id, session.title, session.date, marks[session.id to MY_ID])
@@ -76,11 +112,13 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
     }
 
     override suspend fun getDomainSessions(): Result<SessionListDto, DataError.Network> {
+        ensureLoaded()
         delay(600)
         return Result.Success(SessionListDto(sessions.sortedByDescending { it.date }.map { it.toDto() }))
     }
 
     override suspend fun getSessionRoster(sessionId: String): Result<SessionRosterDto, DataError.Network> {
+        ensureLoaded()
         delay(500)
         val session = sessions.firstOrNull { it.id == sessionId }
             ?: return Result.Error(DataError.Network.NOT_FOUND)
@@ -88,14 +126,17 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
     }
 
     override suspend fun createSession(body: CreateSessionRequestDto): Result<AttendanceSessionDto, ApiFailure> {
+        ensureLoaded()
         delay(500)
         if (body.title.isBlank()) return Result.Error(ApiFailure.Api("VALIDATION_ERROR"))
         val session = FakeSession("s${sessions.size + 1}", body.title, body.date)
         sessions += session
+        save()
         return Result.Success(session.toDto())
     }
 
     override suspend fun submitMarks(sessionId: String, body: SubmitMarksRequestDto): Result<SessionRosterDto, ApiFailure> {
+        ensureLoaded()
         delay(700)
         val session = sessions.firstOrNull { it.id == sessionId }
             ?: return Result.Error(ApiFailure.Api("ATTENDANCE_SESSION_NOT_FOUND"))
@@ -104,6 +145,7 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
             return Result.Error(ApiFailure.Api("ATTENDANCE_NOT_IN_DOMAIN"))
         }
         body.marks.forEach { marks[sessionId to it.accountId] = it.status }
+        save()
         return Result.Success(rosterOf(session))
     }
 
@@ -130,5 +172,6 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
 
     private companion object {
         const val MY_ID = "me"
+        const val SNAPSHOT_FILE = "fake_attendance.json"
     }
 }

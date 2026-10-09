@@ -13,7 +13,6 @@ sealed interface ResourcesAction {
     data class OnCopyLink(val id: String) : ResourcesAction
     data class OnRemove(val id: String) : ResourcesAction
     data class OnUndoRemove(val id: String) : ResourcesAction
-    data class OnRemovalCommitted(val id: String) : ResourcesAction
     data object OnDismissTip : ResourcesAction
 
     data class OnUrlChange(val value: String) : ResourcesAction

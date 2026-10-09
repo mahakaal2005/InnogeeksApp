@@ -7,6 +7,7 @@ sealed interface ResourcesEvent {
     data class CopyToClipboard(val text: String) : ResourcesEvent
     data class ShowMessage(val message: UiText) : ResourcesEvent
 
-    // The snackbar offers Undo; its outcome comes back as OnUndoRemove or OnRemovalCommitted.
+    // The snackbar offers Undo until the ViewModel's timer closes it with DismissUndo.
     data class ShowRemoved(val id: String, val title: String) : ResourcesEvent
+    data class DismissUndo(val id: String) : ResourcesEvent
 }

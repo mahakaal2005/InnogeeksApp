@@ -1,6 +1,7 @@
 package com.example.innogeeks.feature_resources.data.remote
 
 import android.content.Context
+import com.example.innogeeks.core.data.fake.FakeStore
 import com.example.innogeeks.core.domain.error.ApiFailure
 import com.example.innogeeks.core.domain.error.DataError
 import com.example.innogeeks.core.domain.model.UserRole
@@ -19,6 +20,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 // Seeded from assets/resources.json and kept in memory, enforcing the same rules the server will:
@@ -29,8 +31,13 @@ class FakeResourcesRemoteDataSource(
 ) : ResourcesRemoteDataSource {
 
     private val json = Json { ignoreUnknownKeys = true }
+    private val store = FakeStore(context)
     private var items: MutableList<ResourceDto>? = null
     private var nextId = 1
+
+    // seedHash lets an app update that changes resources.json replace a stale saved copy.
+    @Serializable
+    private data class Snapshot(val seedHash: Int, val items: List<ResourceDto>)
 
     override suspend fun getResources(): Result<ResourceListDto, DataError.Network> {
         return try {
@@ -49,6 +56,7 @@ class FakeResourcesRemoteDataSource(
             description = body.description, author = body.author, date = today(), level = body.level, url = body.url
         )
         loaded().add(0, created)
+        save()
         return Result.Success(created)
     }
 
@@ -64,6 +72,7 @@ class FakeResourcesRemoteDataSource(
             author = body.author, level = body.level, url = body.url
         )
         loaded()[index] = updated
+        save()
         return Result.Success(updated)
     }
 
@@ -73,13 +82,26 @@ class FakeResourcesRemoteDataSource(
         val existing = loaded().firstOrNull { it.id == id } ?: return Result.Error(ApiFailure.Api("RESOURCE_NOT_FOUND"))
         if (existing.domainId != domainId) return Result.Error(ApiFailure.Api("RESOURCE_NOT_IN_DOMAIN"))
         loaded().remove(existing)
+        save()
         return Result.Success(DeletedDto())
     }
 
-    private suspend fun loaded(): MutableList<ResourceDto> = items ?: withContext(Dispatchers.IO) {
-        val text = context.assets.open(ASSET_NAME).bufferedReader().use { it.readText() }
-        json.decodeFromString<List<ResourceDto>>(text).toMutableList()
-    }.also { items = it }
+    private suspend fun loaded(): MutableList<ResourceDto> {
+        items?.let { return it }
+        val seedText = withContext(Dispatchers.IO) { context.assets.open(ASSET_NAME).bufferedReader().use { it.readText() } }
+        val saved = store.read(SNAPSHOT_FILE, Snapshot.serializer())?.takeIf { it.seedHash == seedText.hashCode() }
+        val list = saved?.items?.toMutableList() ?: json.decodeFromString<List<ResourceDto>>(seedText).toMutableList()
+        seedHash = seedText.hashCode()
+        nextId = (list.mapNotNull { it.id.removePrefix("new-").toIntOrNull() }.maxOrNull() ?: 0) + 1
+        items = list
+        return list
+    }
+
+    private var seedHash = 0
+
+    private suspend fun save() {
+        store.write(SNAPSHOT_FILE, Snapshot.serializer(), Snapshot(seedHash, loaded().toList()))
+    }
 
     // The domain the caller may write to, or null when their role or domain does not allow it.
     private suspend fun writableDomainId(): String? {
@@ -110,6 +132,7 @@ class FakeResourcesRemoteDataSource(
 
     private companion object {
         const val ASSET_NAME = "resources.json"
+        const val SNAPSHOT_FILE = "fake_resources.json"
         val MONTHS = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     }
 }

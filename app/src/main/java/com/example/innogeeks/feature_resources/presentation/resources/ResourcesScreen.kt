@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -89,6 +91,7 @@ fun ResourcesRoot(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    var undoId by remember { mutableStateOf<String?>(null) } // the removal the visible snackbar can undo
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -99,17 +102,20 @@ fun ResourcesRoot(
                 scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.resources_link_copied)) }
             }
             is ResourcesEvent.ShowMessage -> scope.launch { snackbarHostState.showSnackbar(event.message.asString(context)) }
-            // Undo within the snackbar's life brings the row back; otherwise the delete is real.
+            // Only the latest removal can be undone; the ViewModel's timer decides when the window closes.
             is ResourcesEvent.ShowRemoved -> scope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                undoId = event.id
                 val result = snackbarHostState.showSnackbar(
                     message = context.getString(R.string.resources_removed, event.title),
                     actionLabel = context.getString(R.string.resources_undo),
-                    duration = SnackbarDuration.Short
+                    duration = SnackbarDuration.Indefinite
                 )
-                viewModel.onAction(
-                    if (result == SnackbarResult.ActionPerformed) ResourcesAction.OnUndoRemove(event.id)
-                    else ResourcesAction.OnRemovalCommitted(event.id)
-                )
+                if (result == SnackbarResult.ActionPerformed) viewModel.onAction(ResourcesAction.OnUndoRemove(event.id))
+            }
+            is ResourcesEvent.DismissUndo -> if (undoId == event.id) {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                undoId = null
             }
         }
     }

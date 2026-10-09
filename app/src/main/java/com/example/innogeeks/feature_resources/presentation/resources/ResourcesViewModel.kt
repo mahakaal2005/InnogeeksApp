@@ -8,6 +8,7 @@ import com.example.innogeeks.core.domain.session.Session
 import com.example.innogeeks.core.domain.session.SessionRepository
 import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.core.presentation.UiText
+import com.example.innogeeks.feature_resources.domain.ResourcesPreferences
 import com.example.innogeeks.feature_resources.domain.ResourcesRepository
 import com.example.innogeeks.feature_resources.domain.model.ResourceDraft
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
@@ -16,7 +17,10 @@ import com.example.innogeeks.feature_resources.domain.use_case.CreateResourceUse
 import com.example.innogeeks.feature_resources.domain.use_case.DeleteResourceUseCase
 import com.example.innogeeks.feature_resources.domain.use_case.UpdateResourceUseCase
 import edu.kiet.innogeeks.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -29,7 +33,9 @@ class ResourcesViewModel(
     private val sessionRepository: SessionRepository,
     private val createResource: CreateResourceUseCase,
     private val updateResource: UpdateResourceUseCase,
-    private val deleteResource: DeleteResourceUseCase
+    private val deleteResource: DeleteResourceUseCase,
+    private val preferences: ResourcesPreferences,
+    private val appScope: CoroutineScope // outlives this ViewModel, so a pending delete still runs when the app closes
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ResourcesState())
@@ -38,9 +44,30 @@ class ResourcesViewModel(
     private val _events = Channel<ResourcesEvent>()
     val events = _events.receiveAsFlow()
 
+    // One timer per removed row; Undo cancels it, expiry commits the delete.
+    private val removalTimers = mutableMapOf<String, Job>()
+
     init {
         observeEditRights()
+        observeTip()
         load()
+    }
+
+    override fun onCleared() {
+        // Leaving the app inside the undo window means the user is done: commit what is still pending.
+        val pending = _state.value.pendingRemovalIds.toList()
+        appScope.launch { pending.forEach { deleteResource(it) } }
+        super.onCleared()
+    }
+
+    private fun observeTip() {
+        viewModelScope.launch {
+            preferences.tipSeen.collect { seen -> _state.update { it.copy(showTip = !seen) } }
+        }
+    }
+
+    private fun markTipSeen() {
+        viewModelScope.launch { preferences.markTipSeen() }
     }
 
     // Coordinators and admins may change exactly one domain: their own.
@@ -79,13 +106,15 @@ class ResourcesViewModel(
 
             ResourcesAction.OnAddClick -> _state.update { it.copy(editor = ResourceEditorState()) }
             is ResourcesAction.OnEditClick -> openEditor(action.id)
-            is ResourcesAction.OnLongPress -> _state.update { it.copy(actionSheetFor = action.id) }
+            is ResourcesAction.OnLongPress -> {
+                markTipSeen()
+                _state.update { it.copy(actionSheetFor = action.id) }
+            }
             ResourcesAction.OnActionSheetDismiss -> _state.update { it.copy(actionSheetFor = null) }
             is ResourcesAction.OnCopyLink -> copyLink(action.id)
             is ResourcesAction.OnRemove -> remove(action.id)
-            is ResourcesAction.OnUndoRemove -> _state.update { it.copy(pendingRemovalIds = it.pendingRemovalIds - action.id) }
-            is ResourcesAction.OnRemovalCommitted -> commitRemoval(action.id)
-            ResourcesAction.OnDismissTip -> _state.update { it.copy(showTip = false) }
+            is ResourcesAction.OnUndoRemove -> undoRemoval(action.id)
+            ResourcesAction.OnDismissTip -> markTipSeen()
 
             is ResourcesAction.OnUrlChange -> onUrlChange(action.value)
             is ResourcesAction.OnTitleChange -> editor { it.copy(title = action.value) }
@@ -138,12 +167,24 @@ class ResourcesViewModel(
 
     private fun remove(id: String) {
         val item = _state.value.resources.firstOrNull { it.id == id } ?: return
-        _state.update { it.copy(actionSheetFor = null, pendingRemovalIds = it.pendingRemovalIds + id, showTip = false) }
+        markTipSeen()
+        _state.update { it.copy(actionSheetFor = null, pendingRemovalIds = it.pendingRemovalIds + id) }
         send(ResourcesEvent.ShowRemoved(id, item.title))
+        removalTimers[id] = viewModelScope.launch {
+            delay(UNDO_WINDOW_MS)
+            send(ResourcesEvent.DismissUndo(id))
+            commitRemoval(id)
+        }
+    }
+
+    private fun undoRemoval(id: String) {
+        removalTimers.remove(id)?.cancel()
+        _state.update { it.copy(pendingRemovalIds = it.pendingRemovalIds - id) }
     }
 
     // The undo window closed without Undo, so the delete is real now.
     private fun commitRemoval(id: String) {
+        removalTimers.remove(id)
         if (id !in _state.value.pendingRemovalIds) return
         viewModelScope.launch {
             when (val result = deleteResource(id)) {
@@ -184,8 +225,7 @@ class ResourcesViewModel(
             current.copy(
                 editor = null,
                 resources = if (wasEdit) current.resources.map { if (it.id == item.id) item else it } else listOf(item) + current.resources,
-                newIds = if (wasEdit) current.newIds else current.newIds + item.id,
-                showTip = false
+                newIds = if (wasEdit) current.newIds else current.newIds + item.id
             )
         }
         _events.send(
@@ -198,5 +238,9 @@ class ResourcesViewModel(
 
     private fun send(event: ResourcesEvent) {
         viewModelScope.launch { _events.send(event) }
+    }
+
+    private companion object {
+        const val UNDO_WINDOW_MS = 5000L
     }
 }

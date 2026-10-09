@@ -52,7 +52,7 @@ internal fun ResourceSearchBar(
                 Text(
                     text = placeholder,
                     fontSize = 12.5.sp,
-                    color = scheme.outline
+                    color = scheme.onSurfaceVariant
                 )
             }
             BasicTextField(

@@ -262,7 +262,7 @@ private fun MetaRow(
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.6.sp,
-                color = scheme.outline,
+                color = scheme.onSurfaceVariant,
                 modifier = Modifier.width(52.dp)
             )
             Text(
