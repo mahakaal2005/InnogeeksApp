@@ -24,12 +24,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import kotlinx.coroutines.launch
+import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceActionSheet
+import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceComposerSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,11 +85,32 @@ fun ResourcesRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val uriHandler = LocalUriHandler.current
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             // A bad link or missing browser must not crash the app.
             is ResourcesEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
+            is ResourcesEvent.CopyToClipboard -> {
+                clipboard.setText(AnnotatedString(event.text))
+                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.resources_link_copied)) }
+            }
+            is ResourcesEvent.ShowMessage -> scope.launch { snackbarHostState.showSnackbar(event.message.asString(context)) }
+            // Undo within the snackbar's life brings the row back; otherwise the delete is real.
+            is ResourcesEvent.ShowRemoved -> scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.resources_removed, event.title),
+                    actionLabel = context.getString(R.string.resources_undo),
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.onAction(
+                    if (result == SnackbarResult.ActionPerformed) ResourcesAction.OnUndoRemove(event.id)
+                    else ResourcesAction.OnRemovalCommitted(event.id)
+                )
+            }
         }
     }
 
@@ -87,6 +120,7 @@ fun ResourcesRoot(
         if (ownDomainLoaded) navController.navigate(ResourceBrowserRoute(initialDomainId!!))
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     NavHost(
         navController = navController,
         startDestination = ResourcesListRoute,
@@ -109,25 +143,67 @@ fun ResourcesRoot(
             if (domain != null) {
                 ResourceBrowserScreen(
                     domain = domain,
-                    resources = state.resources.filter { it.domainId == domain.id },
+                    resources = state.visibleResources.filter { it.domainId == domain.id },
                     hazeState = hazeState,
                     onBack = { navController.popBackStack() },
-                    onResourceClick = { resourceId -> navController.navigate(ResourceDetailRoute(resourceId)) }
+                    onResourceClick = { resourceId -> navController.navigate(ResourceDetailRoute(resourceId)) },
+                    canEdit = state.editableDomainId == domain.id,
+                    newIds = state.newIds,
+                    showTip = state.showTip,
+                    onAddClick = { viewModel.onAction(ResourcesAction.OnAddClick) },
+                    onResourceLongClick = { viewModel.onAction(ResourcesAction.OnLongPress(it)) },
+                    onResourceRemove = { viewModel.onAction(ResourcesAction.OnRemove(it)) },
+                    onDismissTip = { viewModel.onAction(ResourcesAction.OnDismissTip) }
                 )
             }
         }
         composable<ResourceDetailRoute> { backStackEntry ->
             val route: ResourceDetailRoute = backStackEntry.toRoute()
-            val resource = state.resources.find { it.id == route.resourceId }
+            val resource = state.visibleResources.find { it.id == route.resourceId }
             if (resource != null) {
                 ResourceDetailScreen(
                     resource = resource,
                     hazeState = hazeState,
                     onBack = { navController.popBackStack() },
-                    onOpenResource = { url -> viewModel.onAction(ResourcesAction.OnResourceItemClicked(url)) }
+                    onOpenResource = { url -> viewModel.onAction(ResourcesAction.OnResourceItemClicked(url)) },
+                    canEdit = state.editableDomainId == resource.domainId,
+                    onEdit = { viewModel.onAction(ResourcesAction.OnEditClick(resource.id)) },
+                    onRemove = {
+                        viewModel.onAction(ResourcesAction.OnRemove(resource.id))
+                        navController.popBackStack()
+                    }
                 )
             }
         }
+    }
+
+    // Lives here, not in a screen, so the Undo survives the pop back to the feed.
+    SnackbarHost(
+        hostState = snackbarHostState,
+        // Clears the Add button, which only coordinators see and who are the only ones who get snackbars.
+        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 164.dp, start = 16.dp, end = 16.dp)
+    )
+    }
+
+    state.actionSheetFor?.let { id ->
+        state.resources.firstOrNull { it.id == id }?.let { resource ->
+            ResourceActionSheet(
+                resource = resource,
+                onEdit = { viewModel.onAction(ResourcesAction.OnEditClick(id)) },
+                onCopyLink = { viewModel.onAction(ResourcesAction.OnCopyLink(id)) },
+                onRemove = { viewModel.onAction(ResourcesAction.OnRemove(id)) },
+                onDismiss = { viewModel.onAction(ResourcesAction.OnActionSheetDismiss) }
+            )
+        }
+    }
+
+    state.editor?.let { editor ->
+        ResourceComposerSheet(
+            editor = editor,
+            domainName = state.domains.firstOrNull { it.id == state.editableDomainId }?.name.orEmpty(),
+            hazeState = hazeState,
+            onAction = viewModel::onAction
+        )
     }
 }
 
@@ -331,9 +407,9 @@ private fun ResourceDomainCard(
 }
 
 private val previewResources = listOf(
-    ResourceItem("w1", "webd", ResourceType.LINK, "🌐", "The Odin Project", "Full-stack curriculum.", "Ritesh", "Aug 2026", "Beginner", "#"),
-    ResourceItem("w2", "webd", ResourceType.PDF, "📄", "CSS Cheatsheet", "Layout reference.", "Neha", "Jul 2026", "Beginner", "#"),
-    ResourceItem("a1", "appd", ResourceType.LINK, "🔗", "Compose Docs", "Official docs.", "Faiq", "Aug 2026", "Beginner", "#")
+    ResourceItem("w1", "webd", ResourceType.LINK, "The Odin Project", "Full-stack curriculum.", "Ritesh", "Aug 2026", "Beginner", "#"),
+    ResourceItem("w2", "webd", ResourceType.PDF, "CSS Cheatsheet", "Layout reference.", "Neha", "Jul 2026", "Beginner", "#"),
+    ResourceItem("a1", "appd", ResourceType.LINK, "Compose Docs", "Official docs.", "Faiq", "Aug 2026", "Beginner", "#")
 )
 
 private val previewDomains = listOf(

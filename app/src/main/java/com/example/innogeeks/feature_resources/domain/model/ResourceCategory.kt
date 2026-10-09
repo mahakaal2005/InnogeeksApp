@@ -14,7 +14,6 @@ data class ResourceItem(
     val id: String,
     val domainId: String,
     val type: ResourceType,
-    val emoji: String,
     val title: String,
     val description: String,
     val author: String,

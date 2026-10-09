@@ -21,6 +21,7 @@ import com.example.innogeeks.feature_recruitment.data.di.recruitmentDataModule
 import com.example.innogeeks.feature_recruitment.domain.di.recruitmentDomainModule
 import com.example.innogeeks.feature_recruitment.presentation.di.recruitmentPresentationModule
 import com.example.innogeeks.feature_resources.data.di.resourcesDataModule
+import com.example.innogeeks.feature_resources.domain.di.resourcesDomainModule
 import com.example.innogeeks.feature_resources.presentation.di.resourcesPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -62,6 +63,7 @@ class InnogeeksApp : Application(){
                 recruitmentPresentationModule,
                 // feature: resources
                 resourcesDataModule,
+                resourcesDomainModule,
                 resourcesPresentationModule
             )
         }

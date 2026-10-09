@@ -21,7 +21,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.key
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +56,7 @@ import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.core.domain.model.Domain
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
+import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceRowCard
 import com.example.innogeeks.feature_resources.presentation.resources.components.ResourceSearchBar
 import com.example.innogeeks.feature_resources.presentation.resources.components.accentColor
 import com.example.innogeeks.feature_resources.presentation.resources.components.domainIconRes
@@ -69,9 +80,30 @@ fun ResourceBrowserScreen(
     onBack: () -> Unit,
     onResourceClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    initialQuery: String = ""
+    initialQuery: String = "",
+    canEdit: Boolean = false, // only the coordinator of this very domain
+    newIds: Set<String> = emptySet(),
+    showTip: Boolean = false,
+    onAddClick: () -> Unit = {},
+    onResourceLongClick: (String) -> Unit = {},
+    onResourceRemove: (String) -> Unit = {},
+    onDismissTip: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
+    val scrollState = rememberScrollState()
+    val feedRow: @Composable (ResourceItem) -> Unit = { resource ->
+        key(resource.id) {
+            FeedRow(
+                resource = resource,
+                hazeState = hazeState,
+                canEdit = canEdit,
+                isNew = resource.id in newIds,
+                onClick = { onResourceClick(resource.id) },
+                onLongClick = { onResourceLongClick(resource.id) },
+                onRemove = { onResourceRemove(resource.id) }
+            )
+        }
+    }
     var activeType by remember(domain.id) { mutableStateOf<ResourceType?>(null) }
     var query by rememberSaveable(domain.id) { mutableStateOf(initialQuery) }
 
@@ -84,8 +116,9 @@ fun ResourceBrowserScreen(
                 resource.author.contains(query, ignoreCase = true))
     }
 
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .hazeSource(hazeState)
@@ -131,6 +164,10 @@ fun ResourceBrowserScreen(
                 )
             }
 
+            if (canEdit) {
+                CoordinatorStrip(domainName = domain.name, modifier = Modifier.padding(bottom = 10.dp))
+            }
+
             ResourceSearchBar(
                 query = query,
                 onQueryChange = { query = it },
@@ -169,9 +206,12 @@ fun ResourceBrowserScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 18.dp, vertical = 4.dp)
         ) {
+            if (canEdit && showTip) {
+                TipRow(onDismiss = onDismissTip, modifier = Modifier.padding(bottom = 8.dp))
+            }
             if (visible.isEmpty() && query.isNotBlank()) {
                 val suggestions = remember(query, resources) { suggestResources(query, resources) }
                 if (suggestions.isEmpty()) {
@@ -192,7 +232,7 @@ fun ResourceBrowserScreen(
                         )
                         SectionLabel(stringResource(R.string.resources_did_you_mean))
                         suggestions.forEach { resource ->
-                            ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
+                            feedRow(resource)
                         }
                     }
                 }
@@ -212,19 +252,127 @@ fun ResourceBrowserScreen(
                         Column(modifier = Modifier.padding(bottom = 14.dp)) {
                             SectionLabel(type.groupLabel())
                             group.forEach { resource ->
-                                ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
+                                feedRow(resource)
                             }
                         }
                     }
                 }
             } else {
                 visible.forEach { resource ->
-                    ResourceRowCard(resource = resource, hazeState = hazeState, onClick = { onResourceClick(resource.id) })
+                    feedRow(resource)
                 }
             }
-            Spacer(modifier = Modifier.padding(top = 100.dp))
+            Spacer(modifier = Modifier.padding(top = if (canEdit) 170.dp else 100.dp))
         }
     }
+    if (canEdit) {
+        AddFab(
+            expanded = !scrollState.isScrollInProgress,
+            onClick = onAddClick,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 18.dp, bottom = 96.dp)
+        )
+    }
+    }
+}
+
+// Swipe left to remove (Undo follows); a plain row for everyone who can't edit.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeedRow(
+    resource: ResourceItem,
+    hazeState: HazeState,
+    canEdit: Boolean,
+    isNew: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onRemove: () -> Unit
+) {
+    if (!canEdit) {
+        ResourceRowCard(resource, hazeState, onClick, modifier = Modifier.padding(bottom = 8.dp))
+        return
+    }
+    val scheme = MaterialTheme.colorScheme
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { target ->
+            if (target == SwipeToDismissBoxValue.EndToStart) { onRemove(); true } else false
+        }
+    )
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        modifier = Modifier.padding(bottom = 8.dp).clip(RoundedCornerShape(16.dp)),
+        backgroundContent = {
+            // The rows are glass, so the red must exist only while a swipe is under way.
+            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) Row(
+                modifier = Modifier.fillMaxSize().background(scheme.error.copy(alpha = 0.22f)).padding(end = 22.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End)
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null, tint = scheme.error, modifier = Modifier.size(20.dp))
+                Text(text = stringResource(R.string.resources_remove), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = scheme.error)
+            }
+        }
+    ) {
+        ResourceRowCard(resource, hazeState, onClick, isNew = isNew, onLongClick = onLongClick)
+    }
+}
+
+@Composable
+private fun CoordinatorStrip(domainName: String, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(scheme.primary.copy(alpha = 0.10f))
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = scheme.primary, modifier = Modifier.size(16.dp))
+        Text(
+            text = stringResource(R.string.resources_coordinate_strip, domainName),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = scheme.primary
+        )
+    }
+}
+
+@Composable
+private fun TipRow(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, scheme.primary.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+            .padding(start = 12.dp, top = 2.dp, bottom = 2.dp, end = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.resources_tip),
+            style = MaterialTheme.typography.bodySmall,
+            color = scheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(onClick = onDismiss) {
+            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.resources_tip_dismiss), tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+// Shrinks to a plain "+" while the list scrolls so it never sits on a title.
+@Composable
+private fun AddFab(expanded: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        expanded = expanded,
+        icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+        text = { Text(stringResource(R.string.resources_add), fontWeight = FontWeight.Bold) },
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -259,99 +407,6 @@ private fun TypeFilterChip(
     }
 }
 
-@Composable
-private fun ResourceRowCard(
-    resource: ResourceItem,
-    hazeState: HazeState,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-    val accent = resource.type.accentColor()
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
-            .liquidGlass(hazeState = hazeState, cornerRadius = 16.dp)
-            .clickable(onClick = onClick)
-            .padding(13.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(accent.copy(alpha = 0.18f))
-                .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = resource.emoji, fontSize = 20.sp)
-        }
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = resource.title,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.5.sp,
-                color = scheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = resource.description,
-                fontSize = 10.5.sp,
-                lineHeight = 14.sp,
-                color = scheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 3.dp)
-            )
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                ResourceChip(text = resource.type.label(), accent = accent)
-                ResourceChip(text = resource.level, accent = scheme.outline)
-            }
-        }
-
-        // TODO: bookmarking — pending backend sync + offline cache, tracked separately.
-        Box(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(CircleShape)
-                .background(scheme.surfaceContainerHigh)
-                .border(1.dp, scheme.outlineVariant, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ArrowForward,
-                contentDescription = null,
-                tint = scheme.outline,
-                modifier = Modifier.size(11.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ResourceChip(text: String, accent: Color, modifier: Modifier = Modifier) {
-    Text(
-        text = text.uppercase(),
-        fontSize = 8.5.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.4.sp,
-        color = accent,
-        modifier = modifier
-            .clip(RoundedCornerShape(percent = 50))
-            .background(accent.copy(alpha = 0.12f))
-            .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(percent = 50))
-            .padding(horizontal = 8.dp, vertical = 3.dp)
-    )
-}
-
 private val previewDomain = Domain(
     id = "webd", name = "Web Dev", tagline = "React, Node & everything between",
     description = "Web Dev builds and maintains all of Innogeeks' web-facing tools.",
@@ -359,9 +414,9 @@ private val previewDomain = Domain(
 )
 
 private val previewResources = listOf(
-    ResourceItem("w1", "webd", ResourceType.LINK, "🌐", "The Odin Project", "Full-stack web dev curriculum — HTML, CSS, JS, Node, React.", "Ritesh Kumar", "Aug 2026", "Beginner", "#"),
-    ResourceItem("w2", "webd", ResourceType.PDF, "📄", "CSS Grid & Flexbox Cheatsheet", "Compact visual reference card for CSS layout.", "Neha Singh", "Jul 2026", "Beginner", "#"),
-    ResourceItem("w3", "webd", ResourceType.VIDEO, "▶️", "JS Event Loop — Visualised", "Explains the call stack, task queue, and microtasks.", "Aditya Sharma", "Jun 2026", "Intermediate", "#")
+    ResourceItem("w1", "webd", ResourceType.LINK, "The Odin Project", "Full-stack web dev curriculum — HTML, CSS, JS, Node, React.", "Ritesh Kumar", "Aug 2026", "Beginner", "#"),
+    ResourceItem("w2", "webd", ResourceType.PDF, "CSS Grid & Flexbox Cheatsheet", "Compact visual reference card for CSS layout.", "Neha Singh", "Jul 2026", "Beginner", "#"),
+    ResourceItem("w3", "webd", ResourceType.VIDEO, "JS Event Loop — Visualised", "Explains the call stack, task queue, and microtasks.", "Aditya Sharma", "Jun 2026", "Intermediate", "#")
 )
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
@@ -419,6 +474,39 @@ private fun ResourceBrowserScreenSearchNoMatchPreview() {
             onBack = {},
             onResourceClick = {},
             initialQuery = "xzq quantum blockchain"
+        )
+    }
+}
+
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun ResourceBrowserScreenCoordinatorPreview() {
+    InnogeeksTheme {
+        ResourceBrowserScreen(
+            domain = previewDomain,
+            resources = previewResources,
+            hazeState = HazeState(),
+            onBack = {},
+            onResourceClick = {},
+            canEdit = true,
+            newIds = setOf("w3"),
+            showTip = true
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun ResourceBrowserScreenCoordinatorNoTipPreview() {
+    InnogeeksTheme {
+        ResourceBrowserScreen(
+            domain = previewDomain,
+            resources = previewResources,
+            hazeState = HazeState(),
+            onBack = {},
+            onResourceClick = {},
+            canEdit = true
         )
     }
 }

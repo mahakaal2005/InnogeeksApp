@@ -21,6 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Speed
@@ -43,6 +45,7 @@ import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.feature_resources.domain.model.ResourceItem
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import com.example.innogeeks.feature_resources.presentation.resources.components.accentColor
+import com.example.innogeeks.feature_resources.presentation.resources.components.icon
 import com.example.innogeeks.feature_resources.presentation.resources.components.label
 import com.example.innogeeks.ui.theme.InnogeeksTheme
 import dev.chrisbanes.haze.HazeState
@@ -57,7 +60,10 @@ fun ResourceDetailScreen(
     hazeState: HazeState,
     onBack: () -> Unit,
     onOpenResource: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    canEdit: Boolean = false, // only the coordinator of this resource's domain
+    onEdit: () -> Unit = {},
+    onRemove: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
     val accent = resource.type.accentColor()
@@ -119,7 +125,7 @@ fun ResourceDetailScreen(
                         .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(18.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = resource.emoji, fontSize = 26.sp)
+                    Icon(imageVector = resource.type.icon(), contentDescription = null, tint = accent, modifier = Modifier.size(28.dp))
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -159,7 +165,7 @@ fun ResourceDetailScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, bottom = 140.dp)
+                    .padding(top = 24.dp, bottom = if (canEdit) 18.dp else 140.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .background(scheme.secondary)
                     .clickable(onClick = { onOpenResource(resource.url) })
@@ -181,6 +187,48 @@ fun ResourceDetailScreen(
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
+
+            if (canEdit) {
+                ManageSection(onEdit = onEdit, onRemove = onRemove, hazeState = hazeState, modifier = Modifier.padding(bottom = 140.dp))
+            }
+        }
+    }
+}
+
+// Editing lives down here so the header stays calm; Remove is quiet and comes with Undo.
+@Composable
+private fun ManageSection(onEdit: () -> Unit, onRemove: () -> Unit, hazeState: HazeState, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .liquidGlass(hazeState = hazeState, cornerRadius = 16.dp)
+            .padding(horizontal = 14.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.resources_manage).uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.4.sp,
+            color = scheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit).padding(vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(Icons.Filled.Edit, contentDescription = null, tint = scheme.onSurface, modifier = Modifier.size(20.dp))
+            Text(stringResource(R.string.resources_edit_resource), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+        }
+        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.4f))
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onRemove).padding(vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(Icons.Filled.Delete, contentDescription = null, tint = scheme.error.copy(alpha = 0.9f), modifier = Modifier.size(20.dp))
+            Text(stringResource(R.string.resources_remove), style = MaterialTheme.typography.bodyMedium, color = scheme.error.copy(alpha = 0.9f))
         }
     }
 }
@@ -247,7 +295,7 @@ private fun DetailChip(text: String, accent: Color, modifier: Modifier = Modifie
 }
 
 private val previewResource = ResourceItem(
-    id = "w1", domainId = "webd", type = ResourceType.LINK, emoji = "🌐",
+    id = "w1", domainId = "webd", type = ResourceType.LINK,
     title = "The Odin Project",
     description = "Full-stack web dev curriculum — HTML, CSS, JS, Node, React. Free and open source, structured like a real bootcamp.",
     author = "Ritesh Kumar", date = "Aug 2026", level = "Beginner", url = "https://www.theodinproject.com"
@@ -262,6 +310,21 @@ private fun ResourceDetailScreenPreview() {
             hazeState = HazeState(),
             onBack = {},
             onOpenResource = {}
+        )
+    }
+}
+
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 900)
+@Composable
+private fun ResourceDetailScreenCoordinatorPreview() {
+    InnogeeksTheme {
+        ResourceDetailScreen(
+            resource = previewResource,
+            hazeState = HazeState(),
+            onBack = {},
+            onOpenResource = {},
+            canEdit = true
         )
     }
 }

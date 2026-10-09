@@ -1,6 +1,13 @@
 package com.example.innogeeks.feature_resources.presentation.resources.components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import edu.kiet.innogeeks.R
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 import androidx.compose.runtime.Composable
@@ -35,6 +42,14 @@ internal fun ResourceType.accentColor(): Color = when (this) {
     ResourceType.VIDEO -> Color(0xFFBFA0FF)
     ResourceType.NOTES -> Color(0xFF9DE6B8)
     ResourceType.GITHUB -> Color(0xFFC8C8C8)
+}
+
+internal fun ResourceType.icon(): ImageVector = when (this) {
+    ResourceType.LINK -> Icons.Filled.Link
+    ResourceType.PDF -> Icons.Filled.PictureAsPdf
+    ResourceType.VIDEO -> Icons.Filled.PlayCircle
+    ResourceType.NOTES -> Icons.Filled.Description
+    ResourceType.GITHUB -> Icons.Filled.Code
 }
 
 // Per-domain accent for the picker cards, indexed by Domain.accentIndex (reserved for this).

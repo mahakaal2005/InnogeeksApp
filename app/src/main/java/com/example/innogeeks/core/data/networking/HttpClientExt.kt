@@ -135,16 +135,27 @@ suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.pu
     body: Request
 ): Result<Response, ApiFailure> = sendEnveloped(HttpMethod.Put, route, body)
 
+// Envelope-aware PATCH, for partial updates.
+suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.patchEnveloped(
+    route: String,
+    body: Request
+): Result<Response, ApiFailure> = sendEnveloped(HttpMethod.Patch, route, body)
+
+// Envelope-aware DELETE, which sends no body.
+suspend inline fun <reified Response : Any> HttpClient.deleteEnveloped(
+    route: String
+): Result<Response, ApiFailure> = sendEnveloped<Unit, Response>(HttpMethod.Delete, route, null)
+
 suspend inline fun <reified Request : Any, reified Response : Any> HttpClient.sendEnveloped(
     httpMethod: HttpMethod,
     route: String,
-    body: Request
+    body: Request?
 ): Result<Response, ApiFailure> {
     val response = try {
         request {
             method = httpMethod
             url(constructRoute(route))
-            setBody(body)
+            if (body != null) setBody(body)
         }
     } catch (e: UnresolvedAddressException) {
         e.printStackTrace()
@@ -194,4 +205,4 @@ fun constructRoute(route: String): String {
         route.startsWith("/") -> BuildConfig.BASE_URL + route
         else -> BuildConfig.BASE_URL + "/$route"
     }
-}
+}

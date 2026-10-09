@@ -4,16 +4,18 @@ import com.example.innogeeks.core.domain.resources.ResourceKind
 import com.example.innogeeks.core.domain.resources.ResourceShortcut
 import com.example.innogeeks.core.domain.resources.ResourceShortcutProvider
 import com.example.innogeeks.core.domain.resources.ResourceShortcuts
+import com.example.innogeeks.core.domain.util.Result
 import com.example.innogeeks.feature_resources.domain.ResourcesRepository
 import com.example.innogeeks.feature_resources.domain.model.ResourceType
 
-class AssetResourceShortcutProvider(
+class DefaultResourceShortcutProvider(
     private val repository: ResourcesRepository
 ) : ResourceShortcutProvider {
 
     override suspend fun getShortcuts(contentDomainId: String, limit: Int): ResourceShortcuts {
-        val inDomain = repository.getResources().getOrDefault(emptyList()).filter { it.domainId == contentDomainId }
-        // The asset has no real dates, so one of each type gives a more useful mix than the first few.
+        val all = (repository.getResources() as? Result.Success)?.data.orEmpty()
+        val inDomain = all.filter { it.domainId == contentDomainId }
+        // Newest first, so a resource a coordinator just added leads; one of each type keeps the mix useful.
         val picks = inDomain.distinctBy { it.type }.take(limit)
         return ResourceShortcuts(
             items = picks.map { item ->
