@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.example.innogeeks.core.presentation.components.DashedDivider
 import com.example.innogeeks.core.presentation.components.passCardSurface
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import dev.chrisbanes.haze.HazeState
 import edu.kiet.innogeeks.R
 
 // Profile's twin of the Home pass: identity, role, and the admin-assigned domain with its mascot.
@@ -42,6 +43,7 @@ fun ProfilePassCard(
     roleLabel: String,
     domainName: String?,
     @DrawableRes mascot: Int?,
+    hazeState: HazeState,
     modifier: Modifier = Modifier
 ) {
     val primary = MaterialTheme.colorScheme.primary
@@ -50,7 +52,7 @@ fun ProfilePassCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .passCardSurface()
+                .passCardSurface(hazeState)
                 .padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 14.dp)
         ) {
             Text(
@@ -169,7 +171,7 @@ private fun ProfilePassCardMemberPreview() {
     InnogeeksTheme {
         ProfilePassCard(
             initials = "TM", name = "Test Member", email = "test.member@kiet.edu",
-            roleLabel = "Member", domainName = "App Dev", mascot = R.drawable.ic_domain_appd,
+            roleLabel = "Member", domainName = "App Dev", mascot = R.drawable.ic_domain_appd, hazeState = HazeState(),
             modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 70.dp)
         )
     }
@@ -181,7 +183,7 @@ private fun ProfilePassCardCoordinatorLongNamePreview() {
     InnogeeksTheme {
         ProfilePassCard(
             initials = "AK", name = "Atul Kumar Singh", email = "atul.kumar.singh@kiet.edu",
-            roleLabel = "Coordinator", domainName = "Machine Learning", mascot = R.drawable.ic_domain_ml,
+            roleLabel = "Coordinator", domainName = "Machine Learning", mascot = R.drawable.ic_domain_ml, hazeState = HazeState(),
             modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 70.dp)
         )
     }
@@ -193,7 +195,7 @@ private fun ProfilePassCardAdminPreview() {
     InnogeeksTheme {
         ProfilePassCard(
             initials = "RS", name = "Riya Sharma", email = "riya.sharma@kiet.edu",
-            roleLabel = "Admin", domainName = "Web Dev", mascot = R.drawable.ic_domain_webd,
+            roleLabel = "Admin", domainName = "Web Dev", mascot = R.drawable.ic_domain_webd, hazeState = HazeState(),
             modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 70.dp)
         )
     }
@@ -205,7 +207,7 @@ private fun ProfilePassCardRegisteredPreview() {
     InnogeeksTheme {
         ProfilePassCard(
             initials = "AK", name = "Ayush Kumar", email = "ayush.kumar@kiet.edu",
-            roleLabel = "Registered", domainName = null, mascot = null,
+            roleLabel = "Registered", domainName = null, mascot = null, hazeState = HazeState(),
             modifier = Modifier.padding(18.dp)
         )
     }

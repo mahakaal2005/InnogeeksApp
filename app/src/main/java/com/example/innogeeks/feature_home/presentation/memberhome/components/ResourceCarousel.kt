@@ -2,7 +2,6 @@ package com.example.innogeeks.feature_home.presentation.memberhome.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.core.domain.resources.ResourceKind
 import com.example.innogeeks.feature_home.presentation.memberhome.ShortcutUi
+import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import dev.chrisbanes.haze.HazeState
 import edu.kiet.innogeeks.R
 
 // Swipeable resource cards for the member's own domain, ending in an "All N" card.
@@ -52,6 +52,7 @@ import edu.kiet.innogeeks.R
 fun ResourceCarousel(
     shortcuts: List<ShortcutUi>,
     totalCount: Int,
+    hazeState: HazeState,
     onResourceClick: (String) -> Unit,
     onAllClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -62,26 +63,19 @@ fun ResourceCarousel(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(shortcuts, key = { it.id }) { shortcut ->
-            ResourceCard(shortcut = shortcut, onClick = { onResourceClick(shortcut.url) })
+            ResourceCard(shortcut = shortcut, hazeState = hazeState, onClick = { onResourceClick(shortcut.url) })
         }
         item(key = "all") { AllResourcesCard(count = totalCount, onClick = onAllClick) }
     }
 }
 
 @Composable
-private fun ResourceCard(shortcut: ShortcutUi, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(20.dp)
+private fun ResourceCard(shortcut: ShortcutUi, hazeState: HazeState, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .width(200.dp)
             .height(170.dp)
-            .clip(shape)
-            .background(
-                Brush.verticalGradient(
-                    listOf(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.surfaceContainer)
-                )
-            )
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
+            .liquidGlass(hazeState = hazeState, cornerRadius = 20.dp)
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
@@ -112,7 +106,7 @@ private fun ResourceCard(shortcut: ShortcutUi, onClick: () -> Unit) {
             Text(
                 text = stringResource(R.string.member_home_resource_meta, shortcut.kind.label(), shortcut.author),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 4.dp)
@@ -186,6 +180,6 @@ internal val previewShortcuts = listOf(
 @Composable
 private fun ResourceCarouselPreview() {
     InnogeeksTheme {
-        ResourceCarousel(shortcuts = previewShortcuts, totalCount = 50, onResourceClick = {}, onAllClick = {})
+        ResourceCarousel(shortcuts = previewShortcuts, totalCount = 50, hazeState = HazeState(), onResourceClick = {}, onAllClick = {})
     }
 }

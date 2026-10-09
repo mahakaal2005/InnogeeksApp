@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,6 +69,7 @@ fun MemberHomeRoot(
     hazeState: HazeState,
     onOpenAttendance: () -> Unit,
     onOpenResources: () -> Unit,
+    onOpenProfile: () -> Unit,
     viewModel: MemberHomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -77,6 +81,7 @@ fun MemberHomeRoot(
         when (event) {
             MemberHomeEvent.OpenAttendance -> onOpenAttendance()
             MemberHomeEvent.OpenResources -> onOpenResources()
+            MemberHomeEvent.OpenProfile -> onOpenProfile()
             is MemberHomeEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
         }
     }
@@ -104,14 +109,7 @@ fun MemberHomeScreen(
             // Bottom padding keeps the last card clear of the floating glass nav.
             contentPadding = PaddingValues(bottom = 110.dp)
         ) {
-            item(key = "logo") {
-                Image(
-                    painter = painterResource(R.drawable.app_logo),
-                    contentDescription = stringResource(R.string.home_innogeeks),
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.padding(start = 20.dp, top = 10.dp).height(26.dp)
-                )
-            }
+            item(key = "top-bar") { TopBar(initials = state.initials, onProfileClick = { onAction(MemberHomeAction.OnProfileClick) }) }
             item(key = "greeting") { Greeting(state.dayPart, state.name) }
 
             if (state.isLoading) {
@@ -128,6 +126,7 @@ fun MemberHomeScreen(
                         domain = domain,
                         role = role,
                         overview = state.overview,
+                        hazeState = hazeState,
                         onClick = { onAction(MemberHomeAction.OnAttendanceClick) },
                         // Room above the card for the mascot that breaks out of it.
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 58.dp)
@@ -143,6 +142,7 @@ fun MemberHomeScreen(
                 item(key = "to-mark") {
                     ToMarkBar(
                         count = count,
+                        hazeState = hazeState,
                         onMarkNowClick = { onAction(MemberHomeAction.OnToMarkClick) },
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)
                     )
@@ -179,11 +179,52 @@ fun MemberHomeScreen(
                     ResourceCarousel(
                         shortcuts = state.shortcuts,
                         totalCount = state.totalResources,
+                        hazeState = hazeState,
                         onResourceClick = { onAction(MemberHomeAction.OnResourceClick(it)) },
                         onAllClick = { onAction(MemberHomeAction.OnAllResourcesClick) }
                     )
                 }
             }
+        }
+    }
+}
+
+// Brand on the left, your initials on the right as a shortcut to Profile.
+@Composable
+private fun TopBar(initials: String, onProfileClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Image(
+                painter = painterResource(R.drawable.app_logo),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(28.dp)
+            )
+            Text(
+                text = stringResource(R.string.pass_card_club_label),
+                style = MaterialTheme.typography.titleMedium,
+                letterSpacing = 2.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable(onClickLabel = stringResource(R.string.member_home_open_profile), onClick = onProfileClick),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = initials,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }
@@ -278,6 +319,7 @@ private fun SkeletonBlock(modifier: Modifier, radius: Dp) {
 private val previewMember = MemberHomeState(
     isLoading = false,
     name = "Atul",
+    initials = "AK",
     role = UserRole.MEMBER,
     domain = UserDomain.ANDROID,
     overview = previewOverview,

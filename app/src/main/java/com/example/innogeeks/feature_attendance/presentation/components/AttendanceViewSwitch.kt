@@ -15,12 +15,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import dev.chrisbanes.haze.HazeState
 import edu.kiet.innogeeks.R
 
 enum class AttendanceView { MINE, DOMAIN }
@@ -29,17 +32,15 @@ enum class AttendanceView { MINE, DOMAIN }
 @Composable
 fun AttendanceViewSwitch(
     selected: AttendanceView,
+    hazeState: HazeState,
     onSelect: (AttendanceView) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
-
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 16.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(scheme.surfaceContainer)
+            .liquidGlass(hazeState = hazeState, cornerRadius = 14.dp)
             .padding(4.dp)
     ) {
         SwitchOption(
@@ -65,7 +66,8 @@ private fun SwitchOption(text: String, isSelected: Boolean, onClick: () -> Unit,
         modifier = modifier
             .heightIn(min = 40.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(if (isSelected) scheme.surfaceContainerHigh else scheme.surfaceContainer)
+            // Same selected pill as the glass nav bar.
+            .background(if (isSelected) scheme.primary.copy(alpha = 0.20f) else Color.Transparent)
             .selectable(selected = isSelected, role = Role.Tab, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -73,7 +75,7 @@ private fun SwitchOption(text: String, isSelected: Boolean, onClick: () -> Unit,
             text = text,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = if (isSelected) scheme.onSurface else scheme.outline
+            color = if (isSelected) scheme.primary else scheme.onSurfaceVariant
         )
     }
 }
@@ -83,8 +85,8 @@ private fun SwitchOption(text: String, isSelected: Boolean, onClick: () -> Unit,
 private fun AttendanceViewSwitchPreview() {
     InnogeeksTheme {
         androidx.compose.foundation.layout.Column(modifier = Modifier.padding(16.dp)) {
-            AttendanceViewSwitch(selected = AttendanceView.MINE, onSelect = {})
-            AttendanceViewSwitch(selected = AttendanceView.DOMAIN, onSelect = {})
+            AttendanceViewSwitch(selected = AttendanceView.MINE, hazeState = HazeState(), onSelect = {})
+            AttendanceViewSwitch(selected = AttendanceView.DOMAIN, hazeState = HazeState(), onSelect = {})
         }
     }
 }

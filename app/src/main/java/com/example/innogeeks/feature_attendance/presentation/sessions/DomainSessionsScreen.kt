@@ -135,6 +135,7 @@ fun DomainSessionsScreen(
                             items(toMark, key = { it.id }) { session ->
                                 SessionCard(
                                     session = session,
+                                    hazeState = hazeState,
                                     onClick = { onAction(DomainSessionsAction.OnSessionClick(session.id)) },
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
@@ -146,6 +147,7 @@ fun DomainSessionsScreen(
                             items(marked, key = { it.id }) { session ->
                                 SessionCard(
                                     session = session,
+                                    hazeState = hazeState,
                                     onClick = { onAction(DomainSessionsAction.OnSessionClick(session.id)) },
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )

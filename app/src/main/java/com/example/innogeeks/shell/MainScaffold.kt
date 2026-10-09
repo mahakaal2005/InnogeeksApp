@@ -227,7 +227,8 @@ fun MainScaffold(
                             0 -> MemberHomeRoot(
                                 hazeState = hazeState,
                                 onOpenAttendance = { selectedTab = 1 },
-                                onOpenResources = { selectedTab = 2 }
+                                onOpenResources = { selectedTab = 2 },
+                                onOpenProfile = { selectedTab = 3 }
                             )
                             1 -> AttendanceRoot(
                                 hazeState = hazeState,

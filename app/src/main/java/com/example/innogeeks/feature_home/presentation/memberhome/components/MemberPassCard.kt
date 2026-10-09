@@ -35,6 +35,7 @@ import com.example.innogeeks.feature_home.presentation.memberhome.AttendanceOver
 import com.example.innogeeks.feature_home.presentation.memberhome.HomeSessionUi
 import com.example.innogeeks.feature_home.presentation.memberhome.MarkStatus
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import dev.chrisbanes.haze.HazeState
 import edu.kiet.innogeeks.R
 
 // The club ID card: domain mascot breaking out of the top edge, role pill, % and one mark per session.
@@ -43,6 +44,7 @@ fun MemberPassCard(
     domain: UserDomain,
     role: UserRole,
     overview: AttendanceOverviewUi,
+    hazeState: HazeState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -52,7 +54,7 @@ fun MemberPassCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .passCardSurface()
+                .passCardSurface(hazeState)
                 .clickable(onClick = onClick)
                 .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp)
         ) {
@@ -163,6 +165,7 @@ private fun MemberPassCardPreview() {
             domain = UserDomain.ANDROID,
             role = UserRole.MEMBER,
             overview = previewOverview,
+            hazeState = HazeState(),
             onClick = {},
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 70.dp)
         )
@@ -177,6 +180,7 @@ private fun MemberPassCardNoScorePreview() {
             domain = UserDomain.WEB,
             role = UserRole.COORDINATOR,
             overview = AttendanceOverviewUi(0, 0, 0, previewSessions.take(1)),
+            hazeState = HazeState(),
             onClick = {},
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 70.dp)
         )

@@ -2,7 +2,6 @@ package com.example.innogeeks.feature_attendance.presentation.sessions.component
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,22 +24,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.innogeeks.feature_attendance.presentation.sessions.SessionUi
+import com.example.innogeeks.core.presentation.components.liquidGlass
 import com.example.innogeeks.ui.theme.InnogeeksTheme
+import dev.chrisbanes.haze.HazeState
 import edu.kiet.innogeeks.R
 
 // A session that still needs marking is highlighted: it is the coordinator's to-do.
 @Composable
-fun SessionCard(session: SessionUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SessionCard(session: SessionUi, hazeState: HazeState, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(16.dp)
     val todo = session.needsMarking
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(shape)
-            .background(if (todo) scheme.primary.copy(alpha = 0.08f) else scheme.surfaceContainer)
-            .then(if (todo) Modifier.border(1.dp, scheme.primary.copy(alpha = 0.45f), shape) else Modifier)
+            .liquidGlass(hazeState = hazeState, cornerRadius = 16.dp)
+            .then(if (todo) Modifier.background(scheme.primary.copy(alpha = 0.10f)) else Modifier)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
@@ -54,7 +53,7 @@ fun SessionCard(session: SessionUi, onClick: () -> Unit, modifier: Modifier = Mo
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-            Text(text = session.dateLabel, style = MaterialTheme.typography.bodySmall, color = scheme.outline)
+            Text(text = session.dateLabel, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
         }
         Row(
             modifier = Modifier.padding(top = 10.dp),
@@ -75,7 +74,7 @@ fun SessionCard(session: SessionUi, onClick: () -> Unit, modifier: Modifier = Mo
                 },
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (todo) FontWeight.Bold else FontWeight.Normal,
-                color = if (todo) scheme.primary else scheme.outline
+                color = if (todo) scheme.primary else scheme.onSurfaceVariant
             )
         }
     }
@@ -106,9 +105,9 @@ private fun previewSession(marked: Int) = SessionUi("s", "Weekly sync", "Wed 7 O
 private fun SessionCardPreview() {
     InnogeeksTheme {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SessionCard(previewSession(0), onClick = {})
-            SessionCard(previewSession(7), onClick = {})
-            SessionCard(previewSession(8), onClick = {})
+            SessionCard(previewSession(0), hazeState = HazeState(), onClick = {})
+            SessionCard(previewSession(7), hazeState = HazeState(), onClick = {})
+            SessionCard(previewSession(8), hazeState = HazeState(), onClick = {})
         }
     }
 }

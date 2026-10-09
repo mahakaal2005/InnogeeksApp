@@ -37,6 +37,16 @@ fun String.toGreetingName(): String =
         ?.replaceFirstChar { it.uppercaseChar() }
         .orEmpty()
 
+// "test.member@kiet.edu" becomes "TM", for the avatar next to the brand.
+fun String.toInitials(): String =
+    substringBefore('@')
+        .split('.', '_', '-')
+        .filter { it.isNotBlank() }
+        .take(2)
+        .map { it.first().uppercaseChar() }
+        .joinToString("")
+        .ifEmpty { "?" }
+
 private val shortDateFormat = LocalDate.Format {
     dayOfMonth(Padding.NONE)
     char(' ')

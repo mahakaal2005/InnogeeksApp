@@ -6,6 +6,7 @@ sealed interface MemberHomeAction {
     data object OnRetryClick : MemberHomeAction
     data object OnAttendanceClick : MemberHomeAction
     data object OnToMarkClick : MemberHomeAction
+    data object OnProfileClick : MemberHomeAction
     data object OnAllResourcesClick : MemberHomeAction
     data class OnResourceClick(val url: String) : MemberHomeAction
 }

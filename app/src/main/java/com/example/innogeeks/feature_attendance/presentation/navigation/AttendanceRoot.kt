@@ -68,7 +68,7 @@ fun AttendanceRoot(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
         ) {
             composable<AttendanceHomeRoute> {
-                val switch = @Composable { AttendanceViewSwitch(selected = view, onSelect = { view = it }) }
+                val switch = @Composable { AttendanceViewSwitch(selected = view, hazeState = hazeState, onSelect = { view = it }) }
                 when (view) {
                     AttendanceView.MINE -> MyAttendanceRoot(hazeState = hazeState, topContent = switch)
                     AttendanceView.DOMAIN -> DomainSessionsRoot(

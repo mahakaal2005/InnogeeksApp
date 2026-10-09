@@ -297,6 +297,7 @@ private fun LazyListScope.registeredProfile(
             roleLabel = session.role.toUiText().asString(),
             domainName = session.domain?.toUiText()?.asString(),
             mascot = session.domain?.mascotRes(),
+            hazeState = hazeState,
             // Top padding leaves room for the mascot that overhangs the card.
             modifier = Modifier.padding(top = if (session.domain != null) 58.dp else 6.dp, bottom = 6.dp)
         )

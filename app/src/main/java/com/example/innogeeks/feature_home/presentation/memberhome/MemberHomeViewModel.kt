@@ -48,6 +48,7 @@ class MemberHomeViewModel(
                     _state.value = MemberHomeState(
                         dayPart = currentDayPart(),
                         name = session?.collegeEmail?.toGreetingName().orEmpty(),
+                        initials = session?.collegeEmail?.toInitials().orEmpty(),
                         role = session?.role,
                         domain = session?.domain
                     )
@@ -63,6 +64,7 @@ class MemberHomeViewModel(
             MemberHomeAction.OnScreenShown -> if (!_state.value.isLoading) load(showLoading = false)
             MemberHomeAction.OnAttendanceClick, MemberHomeAction.OnToMarkClick -> send(MemberHomeEvent.OpenAttendance)
             MemberHomeAction.OnAllResourcesClick -> send(MemberHomeEvent.OpenResources)
+            MemberHomeAction.OnProfileClick -> send(MemberHomeEvent.OpenProfile)
             is MemberHomeAction.OnResourceClick -> send(MemberHomeEvent.OpenUrl(action.url))
         }
     }

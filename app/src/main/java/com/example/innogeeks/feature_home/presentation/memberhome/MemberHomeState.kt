@@ -45,6 +45,7 @@ data class MemberHomeState(
     val isRefreshing: Boolean = false,
     val dayPart: DayPart = DayPart.MORNING,
     val name: String = "",
+    val initials: String = "",
     val role: UserRole? = null,
     val domain: UserDomain? = null,
     val overview: AttendanceOverviewUi? = null,
