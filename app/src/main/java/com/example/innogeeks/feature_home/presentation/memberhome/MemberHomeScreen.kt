@@ -241,7 +241,7 @@ private fun Greeting(dayPart: DayPart, name: String) {
                 }
             ),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = name,

@@ -102,7 +102,7 @@ fun CreateSessionContent(
         Text(
             text = stringResource(R.string.attendance_sheet_sub),
             style = MaterialTheme.typography.bodySmall,
-            color = scheme.outline,
+            color = scheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp)
         )
 

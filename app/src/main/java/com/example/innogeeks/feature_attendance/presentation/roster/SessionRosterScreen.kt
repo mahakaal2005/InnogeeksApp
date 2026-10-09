@@ -129,7 +129,7 @@ fun SessionRosterScreen(
                 Text(
                     text = state.dateLabel,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.outline,
+                    color = scheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -257,7 +257,7 @@ private fun RosterTools(state: SessionRosterState, onAction: (SessionRosterActio
             Text(
                 text = stringResource(R.string.attendance_sorted_note),
                 style = MaterialTheme.typography.labelSmall,
-                color = scheme.outline
+                color = scheme.onSurfaceVariant
             )
             // Hidden while searching, so one tap on a single name can never mark the whole domain.
             if (state.query.isBlank()) {
@@ -297,7 +297,7 @@ private fun RosterSearchField(
                 Text(
                     text = stringResource(R.string.attendance_search_hint),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = scheme.outline
+                    color = scheme.onSurfaceVariant
                 )
             }
             BasicTextField(
@@ -332,7 +332,7 @@ private fun NoResults(state: SessionRosterState) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.outline,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()

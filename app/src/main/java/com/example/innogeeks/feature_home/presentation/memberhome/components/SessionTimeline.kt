@@ -98,7 +98,7 @@ private fun TimelineRow(session: HomeSessionUi, isFirst: Boolean, isLast: Boolea
 // "30 Sep · Missed", with the status styled by state.
 @Composable
 private fun sessionMeta(session: HomeSessionUi) = buildAnnotatedString {
-    val muted = MaterialTheme.colorScheme.outline
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
     withStyle(SpanStyle(color = muted)) { append(session.dateLabel + " · ") }
     when (session.status) {
         MarkStatus.PRESENT -> withStyle(SpanStyle(color = muted, fontWeight = FontWeight.Medium)) {

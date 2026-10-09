@@ -24,7 +24,7 @@ fun SectionLabel(
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.6.sp,
-        color = MaterialTheme.colorScheme.outline,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
     )
 }

@@ -64,7 +64,7 @@ fun AttendanceRecordRow(record: AttendanceRecordUi, modifier: Modifier = Modifie
                     text = stringResource(R.string.attendance_not_marked),
                     style = MaterialTheme.typography.labelMedium,
                     fontStyle = FontStyle.Italic,
-                    color = scheme.outline
+                    color = scheme.onSurfaceVariant
                 )
                 RecordStatus.PRESENT -> Unit
             }
@@ -72,7 +72,7 @@ fun AttendanceRecordRow(record: AttendanceRecordUi, modifier: Modifier = Modifie
         Text(
             text = record.dateLabel,
             style = MaterialTheme.typography.bodyMedium,
-            color = scheme.outline
+            color = scheme.onSurfaceVariant
         )
     }
 }

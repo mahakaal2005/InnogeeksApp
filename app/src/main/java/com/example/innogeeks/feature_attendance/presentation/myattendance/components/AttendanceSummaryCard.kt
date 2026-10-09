@@ -82,7 +82,7 @@ fun AttendanceSummaryCard(
                 Text(
                     text = stringResource(R.string.attendance_pending_count, unmarkedCount),
                     style = MaterialTheme.typography.labelMedium,
-                    color = scheme.outline
+                    color = scheme.onSurfaceVariant
                 )
             }
         }

@@ -154,7 +154,7 @@ private fun LazyListScope.historySection(state: MyAttendanceState, onAction: (My
         Text(
             text = stringResource(R.string.attendance_wrong_mark),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 28.dp)
         )

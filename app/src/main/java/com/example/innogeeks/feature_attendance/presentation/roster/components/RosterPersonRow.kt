@@ -117,7 +117,7 @@ private fun RateLine(row: RosterRowUi) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
-        color = if (row.isLowAttendance) scheme.error else scheme.outline
+        color = if (row.isLowAttendance) scheme.error else scheme.onSurfaceVariant
     )
 }
 

@@ -127,7 +127,7 @@ fun MemberPassCard(
                         Text(
                             text = stringResource(R.string.member_home_waiting_for_mark, overview.waiting),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     }
