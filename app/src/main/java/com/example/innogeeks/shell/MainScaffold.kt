@@ -77,6 +77,7 @@ import com.example.innogeeks.feature_recruitment.presentation.tracker.TrackerRoo
 import com.example.innogeeks.feature_resources.presentation.resources.ResourcesRoot
 import com.example.innogeeks.feature_home.domain.model.ClubStats
 import com.example.innogeeks.feature_home.presentation.home.HomeRoot
+import com.example.innogeeks.feature_home.presentation.memberhome.MemberHomeRoot
 import com.example.innogeeks.feature_home.presentation.home.HomeScreen
 import com.example.innogeeks.feature_home.domain.model.CultureMoment
 import com.example.innogeeks.feature_home.presentation.home.HomeState
@@ -223,12 +224,10 @@ fun MainScaffold(
                 is Session.Authenticated -> {
                     if (tabMode == TabMode.MEMBER) {
                         when (selectedTab) {
-                            // Interim: the Member Home dashboard is Phase 4.4, so this reuses the public Home.
-                            0 -> HomeRoot(
+                            0 -> MemberHomeRoot(
                                 hazeState = hazeState,
-                                session = session,
-                                onNavigateToProfile = { selectedTab = 3 },
-                                onNavigateToAuth = onNavigateToAuth
+                                onOpenAttendance = { selectedTab = 1 },
+                                onOpenResources = { selectedTab = 2 }
                             )
                             1 -> AttendanceRoot(
                                 hazeState = hazeState,

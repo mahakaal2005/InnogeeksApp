@@ -307,4 +307,29 @@
     <string name="attendance_error_session_not_found">That session no longer exists.</string>
     <string name="attendance_error_not_in_domain">Someone on the list isn\'t in your domain.</string>
     <string name="attendance_error_validation">Check the details and try again.</string>
+    <string name="member_home_greeting_morning">Good morning,</string>
+    <string name="member_home_greeting_afternoon">Good afternoon,</string>
+    <string name="member_home_greeting_evening">Good evening,</string>
+    <string name="member_home_innogeeks">INNOGEEKS</string>
+    <string name="member_home_role_member">Member</string>
+    <string name="member_home_role_coordinator">Coordinator</string>
+    <string name="member_home_role_admin">Admin</string>
+    <string name="member_home_sessions_attended">%1$d of %2$d sessions attended</string>
+    <string name="member_home_waiting_for_mark">%1$d waiting for a mark</string>
+    <string name="member_home_no_score">No score yet</string>
+    <string name="member_home_first_session_hint">Your first marked session sets it</string>
+    <plurals name="member_home_to_mark">
+        <item quantity="one">%1$d session needs marks</item>
+        <item quantity="other">%1$d sessions need marks</item>
+    </plurals>
+    <string name="member_home_mark_now">Mark now</string>
+    <string name="member_home_last_sessions">Last sessions</string>
+    <string name="member_home_see_all">See all</string>
+    <string name="member_home_no_sessions">Your coordinator marks attendance at each session. They will show up here.</string>
+    <string name="member_home_status_present">Present</string>
+    <string name="member_home_status_missed">Missed</string>
+    <string name="member_home_status_unmarked">Not marked yet</string>
+    <string name="member_home_learn">Learn %1$s</string>
+    <string name="member_home_all_resources">All %1$d</string>
+    <string name="member_home_resource_meta">%1$s \u00b7 %2$s</string>
 </resources>

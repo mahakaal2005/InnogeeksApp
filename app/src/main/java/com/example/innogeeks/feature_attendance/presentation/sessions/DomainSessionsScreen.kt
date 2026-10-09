@@ -33,11 +33,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.innogeeks.core.domain.model.UserDomain
 import com.example.innogeeks.core.presentation.ObserveAsEvents
+import com.example.innogeeks.core.presentation.ObserveOnResume
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.feature_attendance.presentation.components.AttendanceHeader
@@ -68,7 +68,7 @@ fun DomainSessionsRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     // Coming back from a roster must refresh the marked counts.
-    LaunchedEffect(Unit) { viewModel.onAction(DomainSessionsAction.OnScreenShown) }
+    ObserveOnResume { viewModel.onAction(DomainSessionsAction.OnScreenShown) }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -245,14 +245,14 @@ private fun SessionsError(message: UiText, onRetryClick: () -> Unit) {
 // Same shape as the loaded list so nothing jumps when data arrives.
 @Composable
 private fun SessionsSkeleton() {
-    val pulse by rememberInfiniteTransition(label = "sessionsSkeleton").animateFloat(
+    val pulse = rememberInfiniteTransition(label = "sessionsSkeleton").animateFloat(
         initialValue = 0.35f,
         targetValue = 0.9f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
         label = "pulse"
     )
 
-    Column(modifier = Modifier.alpha(pulse)) {
+    Column(modifier = Modifier.graphicsLayer { alpha = pulse.value }) {
         SkeletonBlock(Modifier.padding(top = 16.dp).fillMaxWidth().height(48.dp), 14.dp)
         SkeletonBlock(Modifier.padding(top = 28.dp, bottom = 12.dp).width(70.dp).height(10.dp), 5.dp)
         repeat(3) {

@@ -47,9 +47,13 @@ class FakeAttendanceRemoteDataSource : AttendanceRemoteDataSource {
 
     init {
         val dates = listOf("2026-09-02", "2026-09-09", "2026-09-16", "2026-09-23", "2026-09-30", "2026-10-07")
+        val titles = listOf(
+            "Kotlin crash course", "Compose layouts", "State & recomposition",
+            "Navigation in Compose", "Room + DataStore", "Ktor & REST APIs"
+        )
         dates.forEachIndexed { s, date ->
             val id = "s${s + 1}"
-            sessions += FakeSession(id, "Weekly sync #${s + 1}", date)
+            sessions += FakeSession(id, titles[s], date)
             // The latest session is still unmarked, like a coordinator who hasn't got to it yet.
             if (s == dates.lastIndex) return@forEachIndexed
             members.forEach { member ->

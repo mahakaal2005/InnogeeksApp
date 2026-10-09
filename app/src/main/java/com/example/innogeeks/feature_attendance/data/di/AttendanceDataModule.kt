@@ -1,5 +1,7 @@
 package com.example.innogeeks.feature_attendance.data.di
 
+import com.example.innogeeks.core.domain.attendance.AttendanceSummaryProvider
+import com.example.innogeeks.feature_attendance.data.provider.DefaultAttendanceSummaryProvider
 import com.example.innogeeks.feature_attendance.data.remote.AttendanceRemoteDataSource
 import com.example.innogeeks.feature_attendance.data.remote.FakeAttendanceRemoteDataSource
 import com.example.innogeeks.feature_attendance.data.repository.DefaultAttendanceRepository
@@ -12,4 +14,5 @@ import org.koin.dsl.module
 val attendanceDataModule = module {
     singleOf(::FakeAttendanceRemoteDataSource) { bind<AttendanceRemoteDataSource>() }
     singleOf(::DefaultAttendanceRepository) { bind<AttendanceRepository>() }
+    singleOf(::DefaultAttendanceSummaryProvider) { bind<AttendanceSummaryProvider>() }
 }

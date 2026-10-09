@@ -32,11 +32,10 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.innogeeks.core.domain.model.UserDomain
+import com.example.innogeeks.core.presentation.ObserveOnResume
 import com.example.innogeeks.core.presentation.UiText
 import com.example.innogeeks.core.presentation.components.SectionLabel
 import com.example.innogeeks.core.presentation.mapper.toUiText
@@ -69,7 +69,7 @@ fun MyAttendanceRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     // The ViewModel outlives the tab, so coming back needs its own reload.
-    LaunchedEffect(Unit) { viewModel.onAction(MyAttendanceAction.OnScreenShown) }
+    ObserveOnResume { viewModel.onAction(MyAttendanceAction.OnScreenShown) }
     MyAttendanceScreen(state = state, hazeState = hazeState, onAction = viewModel::onAction, topContent = topContent)
 }
 
@@ -227,14 +227,14 @@ private fun AttendanceError(message: UiText, onRetryClick: () -> Unit) {
 // Same shape as the loaded screen so nothing jumps when data arrives.
 @Composable
 private fun AttendanceSkeleton() {
-    val pulse by rememberInfiniteTransition(label = "attendanceSkeleton").animateFloat(
+    val pulse = rememberInfiniteTransition(label = "attendanceSkeleton").animateFloat(
         initialValue = 0.35f,
         targetValue = 0.9f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
         label = "pulse"
     )
 
-    Column(modifier = Modifier.alpha(pulse)) {
+    Column(modifier = Modifier.graphicsLayer { alpha = pulse.value }) {
         SkeletonBlock(modifier = Modifier.padding(top = 16.dp).fillMaxWidth().height(76.dp), radius = 20.dp)
         SkeletonBlock(modifier = Modifier.padding(top = 30.dp, bottom = 14.dp).width(70.dp).height(10.dp), radius = 5.dp)
         repeat(4) {
