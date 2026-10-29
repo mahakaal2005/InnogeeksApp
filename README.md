@@ -1,166 +1,210 @@
-# Innogeeks Club App
+<div align="center">
 
-Native Android app for the Innogeeks tech club. It lets anyone browse club content as a guest, self-register, track their membership journey, and — once promoted — access member-only tools like attendance and resources.
+# Innogeeks
 
-## Demo
+**The Android app for the InnoGeeks technical club at KIET.**
 
-> Click the thumbnail below to watch the guest demo walkthrough.
+![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
+![Language](https://img.shields.io/badge/language-Kotlin-7F52FF?logo=kotlin&logoColor=white)
+![UI](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2B%20Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Min SDK](https://img.shields.io/badge/min%20SDK-24-blue)
+![Backend](https://img.shields.io/badge/backend-REST%20API-lightgrey)
+![Status](https://img.shields.io/badge/status-in%20development-orange)
 
-[![Guest Demo](videos/demo_thumb.jpg)](https://github.com/mahakaal2005/InnogeeksApp/raw/main/videos/Guest_Demo.mp4)
+</div>
 
----
+## Table of contents
 
-## Tech Stack
+- [Why Innogeeks](#why-innogeeks)
+- [How it works](#how-it-works)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Engineering highlights](#engineering-highlights)
+- [Getting started](#getting-started)
+- [Testing](#testing)
+- [Project structure](#project-structure)
+- [Status and roadmap](#status-and-roadmap)
+- [Author](#author)
 
-| Concern | Library | Version |
-|---|---|---|
-| Language / UI | Kotlin + Jetpack Compose + Material 3 | Kotlin 2.3.20 / BOM 2026.06.01 |
-| Navigation | Navigation Compose (type-safe `@Serializable` routes) | 2.8.4 |
-| DI | Koin | 4.0.0 |
-| Networking | Ktor Client (OkHttp engine) + kotlinx-serialization | 3.0.1 |
-| Local database | Room | 2.7.0 |
-| Key/value + tokens | Jetpack DataStore Preferences | 1.1.1 |
-| Blur / glassmorphism | Haze | 2.0.0-alpha03 |
-| Async | Kotlin Coroutines + Flow | 1.9.0 |
-| Min SDK | Android 7.0 | API 24 |
-| Target / Compile SDK | — | 36 / 37 |
+## Why Innogeeks
 
----
+A student club runs on scattered tools. Recruitment lives in forms and chat groups, attendance on paper, and learning material in links nobody can find. Applicants wait for days without knowing where they stand.
 
-## Architecture
+Innogeeks puts the whole club in one app. Anyone can browse it as a guest. After signing in with a college email, the app changes with the user's role: applicant, member or coordinator.
 
-Single Gradle module (`:app`) organized as **Feature-Driven Clean Architecture** with **MVI (Unidirectional Data Flow)** inside MVVM.
+## How it works
 
-```
-Presentation  ──depends on──▶  Domain  ◀──depends on──  Data
-     │                           │                         │
-  Compose UI                 Use Cases                  Ktor / Room
-  ViewModel                  Repository                 DataStore
-  State / Action             interfaces                 Mappers
-  Event channel              Domain models              DTOs / Entities
-```
+A user starts as a guest and moves through the club's recruitment pipeline. The app reshapes its tabs at each step.
 
-**Key rules:**
-- Domain has zero Android imports and never imports Data or Presentation.
-- Features never import each other — shared contracts live in `core/domain`.
-- `Result<T, DataError>` (typed errors) is the transport between Data and Domain. The ViewModel unpacks it into flat `State` fields before the UI ever sees it.
-- Loading is a plain `isLoading: Boolean` in State, never part of `Result`.
-
----
-
-## Package Structure
-
-```
-com.example.innogeeks/
-│
-├── InnogeeksApp.kt              ← Application; assembles all Koin modules
-├── MainActivity.kt              ← Single activity, hosts the NavHost
-│
-├── core/
-│   ├── common/                  ← Constants (BASE_URL, etc.)
-│   ├── domain/
-│   │   ├── error/               ← DataError (Network / Local), ApiFailure
-│   │   ├── model/               ← UserRole enum
-│   │   ├── session/             ← Session sealed class, SessionRepository interface
-│   │   └── util/                ← Result<T,E>, EmptyResult
-│   ├── data/
-│   │   ├── networking/          ← HttpClientFactory, HttpClientExt (safeCall), ApiEnvelope
-│   │   └── session/             ← DataStoreSessionRepository
-│   ├── navigation/              ← AppRoutes (shared @Serializable route objects)
-│   ├── presentation/
-│   │   ├── components/          ← GlassComponents, StatTile, SectionLabel, ExpandableRow
-│   │   ├── mapper/              ← DataErrorToUiText
-│   │   ├── ObserveAsEvents.kt
-│   │   └── UiText.kt
-│   └── di/                      ← coreDataModule
-│
-├── feature_onboarding/          ← Login, email gate, registration
-├── feature_home/                ← Guest Bento-grid home + MainScaffold (bottom nav shell)
-├── feature_domains/             ← Domain browser (Android, Web, ML, IoT, AR/VR)
-├── feature_events/              ← Club events timeline (past + upcoming tabs)
-└── feature_profile/             ← Profile tab (session-derived, no data module)
+```mermaid
+flowchart TB
+    A["Guest<br/>Home, Domains, Events"] --> B["Sign in with college email"]
+    B --> C["Registered<br/>Recruitment tracker"]
+    C --> D["Book test and interview slots"]
+    D --> E{"Decision"}
+    E -->|Selected| F["Member<br/>Attendance, Resources"]
+    E -->|Rejected| G["Resources, Domains, Events"]
+    F --> H["Coordinator<br/>Manage attendance and resources"]
 ```
 
-Each feature follows the same internal shape:
-
-```
-feature_x/
-├── domain/         ← models, repository interfaces, use cases
-├── data/           ← DTOs, DAOs, repository impls, Koin data module
-└── presentation/   ← State / Action / Event / ViewModel / Screen, Koin presentation module
-```
-
----
+[![Guest walkthrough video](videos/demo_thumb.jpg)](https://github.com/mahakaal2005/InnogeeksApp/raw/main/videos/Guest_Demo.mp4)
 
 ## Features
 
-### Implemented
-
 | Feature | What it does |
 |---|---|
-| **Onboarding** | Email gate → login (LoginUseCase) and self-serve registration (SubmitRegistrationUseCase + AuthValidator). Ktor-backed (`KtorAuthDataSource`) with a `FakeAuthDataSource` for local dev. |
-| **Home** | Guest Bento-grid: hero section, club stats, achievements row, domain wheel, keyword ticker, class culture card. Session-aware — logged-in users will see the tracker dashboard (Phase 2). |
-| **Domains** | 2-column gradient card grid for all five club domains with expandable detail and domain signature icons. |
-| **Events** | Full vertical timeline with Past / Upcoming tab filter and event card components. |
-| **Profile** | Role-aware tab backed purely by the active session (no network call). Login CTA for guests. |
+| Guest browsing | Home with a bento-grid hero, club stats, achievements carousel and class-culture photo stack. No login needed. |
+| Domains | A domain wheel for App Dev, Web, ML, IoT and AR/VR. Each domain has a detail page with its 2026-27 coordinators and team. |
+| Events | The club's dated event history with a sliding detail page and zoomable photos. |
+| College-email sign-in | Email check, verification code, password setup, login and password reset. |
+| Recruitment tracker | Shows progress through fee, test, interview and decision, including waitlisted and rejected outcomes. |
+| Slot booking | Pick or change test and interview slots from a bottom sheet. |
+| Member home and profile pass | A dashboard for members, and a profile pass showing role and assigned domain. |
+| Attendance (member) | Recent sessions, month groups, unmarked sessions and an attendance percentage. |
+| Attendance (coordinator) | Create sessions and mark the roster. |
+| Resources | 250 curated learning resources. The list opens on the member's own domain. |
+| Resource editing (coordinator) | Add, edit and remove the domain's resources, with undo. |
+| Account | Edit name and phone, log out (the token is revoked on the server), and request account deletion. |
 
-### Role-Based Navigation
+The bottom tabs depend on the signed-in role:
 
-| Role | Tabs | Notes |
-|---|---|---|
-| Guest | Home · Domains · Events · Profile | No login wall. Full public browse. |
-| Registered | Home · Domains · Resources · Events · Profile | 5 tabs. Home becomes a membership tracker. |
-| Member | Home · Attendance · Resources · Profile | 4 tabs; Events deferred. |
-| Coordinator | Home · Attendance · Resources · Profile | Same shape as Member, elevated permissions per tab. |
+| Role | Tabs |
+|---|---|
+| Guest | Home, Domains, Events, Profile |
+| Registered | Tracker, Domains, Resources, Events, Profile |
+| Registered (rejected) | Resources, Domains, Events, Profile |
+| Member, Coordinator, Admin | Home, Attendance, Resources, Profile |
 
-Navigation is session-driven: `HomeNavGraph` collects `Session` from `SessionRepository` and passes it into `MainScaffold`, which renders the correct tab set with no re-login required.
+## Tech stack
 
----
+| Layer | Technology |
+|---|---|
+| Language | Kotlin 2.3.20 |
+| UI | Jetpack Compose (BOM 2026.06.01), Material 3, Haze 2.0.0-alpha03 for blur, Lottie 6.6.2 |
+| Navigation | Navigation Compose 2.8.4 with type-safe `@Serializable` routes |
+| Dependency injection | Koin 4.0.0 |
+| Networking | Ktor Client 3.0.1 (OkHttp engine), kotlinx.serialization 1.7.3 |
+| Local storage | Jetpack DataStore Preferences 1.1.1, JSON files for demo data |
+| Async and dates | Kotlin Coroutines and Flow 1.9.0, kotlinx-datetime 0.6.1 |
+| Build | Android Gradle Plugin 9.3.2, Gradle 9.5.0, min SDK 24, target SDK 36, compile SDK 37 |
+| Tests | JUnit 4.13.2, Compose UI test, Espresso |
 
-## Getting Started
+## Architecture
+
+The app is a single Gradle module (`:app`) organised as feature-driven Clean Architecture. Each feature has its own `domain`, `data` and `presentation` packages. The presentation layer uses MVI: a screen sends one **Action** to its ViewModel, the ViewModel exposes one immutable **State**, and one-shot **Events** (navigation, snackbars) go through a separate channel.
+
+```mermaid
+flowchart TB
+    S["Compose screen"] -->|Action| V["ViewModel"]
+    V -->|State| S
+    V --> U["Use case"]
+    U --> R["Repository interface"]
+    R --> I["Repository implementation"]
+    I --> D{"Remote data source"}
+    D --> K["Ktor, live backend"]
+    D --> F["Fake, JSON-backed"]
+```
+
+- The domain layer has no Android imports and never depends on data or presentation.
+- Features never import each other. Shared contracts live in `core/`.
+- Data returns `Result<D, DataError>`. The ViewModel unpacks it into flat state, and a mapper turns each error into a string resource.
+- Loading is a plain `isLoading` flag in state, not part of `Result`.
+
+## Engineering highlights
+
+- **One session flow drives the whole app.** A `Session` is either `Guest` or `Authenticated(role, domain)`. The tab set and the Resources start domain come from it, so a role change re-renders the shell without a re-login.
+- **Fake and live data sources share one interface.** Auth, profile and recruitment call the live backend. Attendance and resources run on fakes behind the same `*RemoteDataSource` interface, and the Ktor versions are already written. Going live is a one-line change in each Koin module. The fakes persist to a JSON file, so demo edits and undo state survive a restart.
+- **Dead tokens sign the user out.** The HTTP client treats a 401 on a request that carried a token as an expired session and drops the user to guest mode. The bearer plugin re-reads storage on refresh, because the cached token can be `null` right after login.
+- **Request bodies never reach Logcat.** Logging is capped at headers in debug builds and is off in release. Bodies would expose passwords, verification codes and tokens.
+- **Resource content is checked by a test.** The 250 resources ship as a JSON asset. A unit test asserts 10 items per domain and type, and that every id and URL is unique, so a bad edit to the file fails the build.
+
+## Getting started
 
 ### Prerequisites
 
-- Android Studio Hedgehog or newer
-- JDK 11+
-- Android device or emulator running API 24+
+- Android Studio (a recent stable release)
+- JDK 17 or newer
+- An emulator or device on Android 7.0 (API 24) or higher
 
-### Clone & Run
+### Clone
 
 ```bash
-git clone https://github.com/<your-org>/InnogeeksApp.git
+git clone https://github.com/mahakaal2005/InnogeeksApp.git
 cd InnogeeksApp
 ```
 
-Open the project in Android Studio, let Gradle sync, then run the `app` configuration on your device or emulator.
+### Configure the backend
 
-### API Base URL
+The backend is not part of this repository. Add its URL to `local.properties` in the project root. The file is gitignored.
 
-The base URL is injected at build time via `BuildConfig.BASE_URL`. It is currently hardcoded in `app/build.gradle.kts`:
-
-```kotlin
-buildConfigField("String", "BASE_URL", "\"https://api.innogeeks.example\"")
+```properties
+apiBaseUrl=https://your-backend-host
 ```
 
-Replace the placeholder value with the actual backend URL before testing network features.
+If the key is missing, the app falls back to a placeholder host. Guest browsing and the fake-backed features still work, but sign-in and the recruitment tracker will fail.
 
----
+### Run and build
 
-## Development Notes
+```bash
+./gradlew installDebug      # build and install on a connected device or emulator
+./gradlew assembleDebug     # build the debug APK only
+./gradlew bundleRelease     # build a minified release bundle (unsigned)
+```
 
-- **In-memory repositories** (`InMemoryAuthRepository`, `InMemoryHomeRepository`, etc.) stand in for real network/DB calls during UI development. Swap them for Ktor/Room implementations in the data Koin modules when the backend is ready.
-- **Haze is alpha** (`2.0.0-alpha03`). The glassmorphism bottom nav bar may have API changes on upgrade.
-- **Single module for now.** The package boundaries already mirror a multi-module layout (`core/domain`, `feature_x/data`, etc.), so splitting into real Gradle modules later is mostly moving folders.
-- All screens must have `@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)`. The app is dark-mode only; never use `showBackground = true` in previews.
+You can also open the project in Android Studio, let Gradle sync, and run the `app` configuration. The release build has no signing config, so add your own before publishing.
 
----
+## Testing
 
-## Roadmap
+```bash
+./gradlew testDebugUnitTest         # JVM unit tests
+./gradlew connectedDebugAndroidTest # instrumented tests, needs a device or emulator
+```
 
-| Phase | Scope |
+The unit tests cover the resource mapper, the bundled resources asset and the user-domain mapping. The instrumented suite only holds the default example test. ViewModels and repositories have no tests yet.
+
+Known issue: `ResourceMapperTest` still passes an `emoji` argument that `ResourceDto` no longer has, so `testDebugUnitTest` currently fails to compile until that test is updated.
+
+## Project structure
+
+```text
+app/src/main/
+├── assets/resources.json        # 250 curated learning resources
+├── res/                         # strings, fonts, Lottie animation
+└── java/com/example/innogeeks/
+    ├── InnogeeksApp.kt          # Application, assembles Koin modules
+    ├── MainActivity.kt          # single activity
+    ├── shell/                   # role-aware bottom navigation, nav graph
+    ├── core/
+    │   ├── domain/              # Result, DataError, Session, UserRole, UserDomain
+    │   ├── data/                # HttpClientFactory, safeCall, session store, fake store
+    │   ├── navigation/          # shared routes
+    │   └── presentation/        # glass components, UiText, ObserveAsEvents
+    ├── feature_onboarding/      # splash, intro, email gate, login, password setup and reset
+    ├── feature_recruitment/     # journey tracker, slot picker
+    ├── feature_home/            # guest home, member dashboard
+    ├── feature_domains/         # domain wheel and detail
+    ├── feature_events/          # event list and detail
+    ├── feature_resources/       # domain picker, browser, detail, coordinator editing
+    ├── feature_attendance/      # member attendance, coordinator manager
+    ├── feature_profile/         # profile pass, edit, logout, account deletion
+    └── ui/theme/                # dark-only theme and typography
+```
+
+## Status and roadmap
+
+The app is in active development and currently at version 4.1.0. The UI is dark mode only.
+
+| Area | State |
 |---|---|
-| Phase 1 ✅ | Guest browse + registration + login |
-| Phase 2 | Registered-user tracking dashboard + payment step |
-| Phase 3 | Member experience (Attendance, Resources) |
-| Phase 4 | Coordinator experience (elevated permissions per tab) |
-| Phase 5 | Admin surface (form TBD — in-app vs. web dashboard) |
+| Guest browsing: home, domains, events | Done |
+| Authentication and password reset | Done, on the live backend |
+| Recruitment tracker, slot booking, profile | Done, on the live backend |
+| Attendance and resources, member and coordinator | Built on fake data |
+| Connect attendance and resources to live endpoints | Planned, waiting on the backend |
+| Admin surface | Planned. Admins see the coordinator tabs for now. |
+| Tests for ViewModels and repositories | Planned |
+
+## Author
+
+Built by [Atul Kumar Singh](https://github.com/mahakaal2005).
