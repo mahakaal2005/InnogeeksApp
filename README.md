@@ -48,7 +48,7 @@ flowchart TB
     F --> H["Coordinator<br/>Manage attendance and resources"]
 ```
 
-[![Guest walkthrough video](videos/demo_thumb.jpg)](https://github.com/mahakaal2005/InnogeeksApp/raw/main/videos/Guest_Demo.mp4)
+<a href="https://github.com/mahakaal2005/InnogeeksApp/raw/main/videos/Guest_Demo.mp4"><img src="videos/demo_thumb.jpg" alt="Guest walkthrough video" width="240"></a>
 
 ## Features
 
